@@ -1,0 +1,36 @@
+name:                jl
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/chrisdone/jl#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Chris Done
+maintainer:          chrisdone@gmail.com
+copyright:           2015 Chris Done
+category:            Web
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  ghc-options:         -Wall  -O2
+  exposed-modules:
+    JL
+    JL.Parser
+    JL.Tokenizer
+    JL.Types
+        JL.Inferer
+        JL.Interpreter
+        JL.Printer
+  build-depends:       base >= 4.7 && < 5, attoparsec, mtl, text, containers, aeson, bytestring, vector, parsec, exceptions, text, containers, text, unordered-containers
+  default-language:    Haskell2010
+
+executable jl
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -Wall -O2
+  build-depends:       base
+                     , jl, text, aeson, containers, bytestring, mtl, optparse-simple, vector
+  default-language:    Haskell2010
