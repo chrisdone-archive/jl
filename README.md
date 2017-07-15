@@ -44,7 +44,7 @@ Short-hand for fields:
 
 For arrays:
 
-    _.0 is sugar for   (\o -> get "0" o)
+    _[0] is sugar for   (\o -> get 0 o)
 
 Function composition:
 
