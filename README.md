@@ -5,6 +5,13 @@ JSON lambda-calculus language.
 The JL language is a simple language with syntactic sugar for querying
 and manipulating JSON structures.
 
+Example:
+
+``` haskell
+$ cat github.json | jl 'map $ \o -> {sha:o.sha,ps:map _.sha o.parents}'
+[{"sha":"7b81a836c31500e685d043729259affa8b670a87","ps":["c538237f4e4c381d35f1c15497c95f659fd55850","ca12bd9b5d15c0c4e5bd01d706ddbb3f4edefd36"]},{"sha":"c538237f4e4c381d35f1c15497c95f659fd55850","ps":["4a6241be0697bbe4ef420c43689c34af59e50330"]},{"sha":"4a6241be0697bbe4ef420c43689c34af59e50330","ps":["1900c7bcac76777782505c89a032c18a65fcc487"]},{"sha":"1900c7bcac76777782505c89a032c18a65fcc487","ps":["578d536233b62884764b3c5c6cd42077958d6a49"]},{"sha":"578d536233b62884764b3c5c6cd42077958d6a49","ps":["b0d6d283102a171c74db142b5b00bb6115287c7a"]}]
+```
+
 ## Core syntax
 
 Literals:
