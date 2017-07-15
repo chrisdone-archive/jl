@@ -37,8 +37,11 @@ Objects:
 ## Core functions
 
 ``` haskell
-get :: String -> Value -> Value
-set :: String -> Value -> Value -> Value
+id :: Value -> Value
+get :: Value -> Value -> Value
+set :: Value -> Value -> Value -> Value
+modify :: (Value -> Value) -> Value -> Value -> Value
+map :: (Value -> Value) -> Value -> Value
 ```
 
 ## Syntactic sugar
