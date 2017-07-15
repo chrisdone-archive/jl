@@ -42,6 +42,7 @@ get :: Value -> Value -> Value
 set :: Value -> Value -> Value -> Value
 modify :: (Value -> Value) -> Value -> Value -> Value
 map :: (Value -> Value) -> Value -> Value
+filter :: (Value -> Value) -> Value -> Value
 ```
 
 ## Syntactic sugar

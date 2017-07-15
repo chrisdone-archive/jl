@@ -74,7 +74,7 @@ funcs = [idf, compose]
                (FunctionType ValueType ValueType))))
 
 arrays :: [(Variable, (Expression, Type))]
-arrays = [mapf, modifyf]
+arrays = [mapf, modifyf, filterf]
   where
     modifyf =
       ( Variable "modify"
@@ -103,7 +103,9 @@ arrays = [mapf, modifyf]
                            _ -> error "type error for args")))
         , FunctionType
             ValueType
-            (FunctionType (FunctionType ValueType ValueType) (FunctionType ValueType ValueType))))
+            (FunctionType
+               (FunctionType ValueType ValueType)
+               (FunctionType ValueType ValueType))))
     mapf =
       ( Variable "map"
       , ( EvalExpression
@@ -116,10 +118,35 @@ arrays = [mapf, modifyf]
                           (Array
                              (fmap
                                 (\x ->
-                                   toValue (eval
-                                              (ApplicationExpression
-                                                 f
-                                                 (ValueExpression x))))
+                                   toValue
+                                     (eval
+                                        (ApplicationExpression
+                                           f
+                                           (ValueExpression x))))
+                                xs'))
+                      _ -> error "can only map over arrays"))
+        , FunctionType
+            (FunctionType ValueType ValueType)
+            (FunctionType ValueType ValueType)))
+    filterf =
+      ( Variable "filter"
+      , ( EvalExpression
+            (\f ->
+               EvalExpression
+                 (\xs ->
+                    case xs of
+                      ValueExpression (Array xs') ->
+                        ValueExpression
+                          (Array
+                             (V.filter
+                                (\x ->
+                                   case toValue
+                                          (eval
+                                             (ApplicationExpression
+                                                f
+                                                (ValueExpression x))) of
+                                     Bool b -> b
+                                     _ -> True)
                                 xs'))
                       _ -> error "can only map over arrays"))
         , FunctionType
