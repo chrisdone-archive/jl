@@ -72,7 +72,7 @@ funcs = [idf, compose]
                (FunctionType ValueType ValueType))))
 
 arrays :: [(Variable, (Core, Type))]
-arrays = [mapf, filterf, len, takef, dropf]
+arrays = [mapf, filterf, len, takef, dropf, empty]
   where
     takef =
       ( Variable "take"
@@ -107,7 +107,16 @@ arrays = [mapf, filterf, len, takef, dropf]
                 case xs of
                   (ArrayCore xs') ->
                     (ConstantCore (NumberConstant (fromIntegral (V.length xs'))))
-                  _ -> error "take length of arrays"))
+                  _ -> error "can only take length of arrays"))
+        , FunctionType ValueType ValueType))
+    empty =
+      ( Variable "empty"
+      , ( (EvalCore
+             (\xs ->
+                case xs of
+                  (ArrayCore xs') ->
+                    (ConstantCore (BoolConstant (V.null xs')))
+                  _ -> error "can only check if arrays are empty"))
         , FunctionType ValueType ValueType))
     filterf =
       ( Variable "filter"
