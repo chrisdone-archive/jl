@@ -72,25 +72,19 @@ funcs = [idf, compose]
                (FunctionType ValueType ValueType))))
 
 arrays :: [(Variable, (Core, Type))]
-arrays = [mapf, filterf]
+arrays = [mapf, filterf, len]
   where
-    mapf =
-      ( Variable "map"
-      , ( EvalCore
-            (\f ->
-               EvalCore
-                 (\xs ->
-                    case xs of
-                      (ArrayCore xs') ->
-                        (ArrayCore
-                           (fmap
-                              (\x ->
-                                 (eval (ApplicationCore f (x))))
-                              xs'))
-                      _ -> error "can only map over arrays"))
+    len =
+      ( Variable "length"
+      , ( (EvalCore
+             (\xs ->
+                case xs of
+                  (ArrayCore xs') ->
+                    (ConstantCore (NumberConstant (fromIntegral (V.length xs'))))
+                  _ -> error "take length of arrays"))
         , FunctionType
-            (FunctionType ValueType ValueType)
-            (FunctionType ValueType ValueType)))
+            ValueType
+            ValueType))
     filterf =
       ( Variable "filter"
       , ( EvalCore
@@ -107,6 +101,23 @@ arrays = [mapf, filterf]
                                    _ -> True)
                               xs'))
                       _ -> error "can only filter over arrays"))
+        , FunctionType
+            (FunctionType ValueType ValueType)
+            (FunctionType ValueType ValueType)))
+    mapf =
+      ( Variable "map"
+      , ( EvalCore
+            (\f ->
+               EvalCore
+                 (\xs ->
+                    case xs of
+                      (ArrayCore xs') ->
+                        (ArrayCore
+                           (fmap
+                              (\x ->
+                                 (eval (ApplicationCore f (x))))
+                              xs'))
+                      _ -> error "can only map over arrays"))
         , FunctionType
             (FunctionType ValueType ValueType)
             (FunctionType ValueType ValueType)))
