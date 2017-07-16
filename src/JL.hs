@@ -12,7 +12,6 @@ import qualified Data.HashMap.Strict as HM
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import           Data.Text (Text)
-import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Vector as V
@@ -46,26 +45,31 @@ scope = fmap fst bindings
 
 bindings :: Map Variable (Core, Type)
 bindings = M.fromList (concat [arith, records, arrays, funcs])
-
+-- flip = \f -> \x -> \y -> f y x
 funcs :: [(Variable, (Core, Type))]
-funcs = [idf, compose]
+funcs = [idf, compose, flipf]
   where
     idf =
-      ( Variable "id"
-      , (EvalCore (\x -> x), FunctionType ValueType ValueType))
+      (Variable "id", (EvalCore (\x -> x), FunctionType ValueType ValueType))
+    flipf =
+      ( Variable "flip"
+      , ( EvalCore
+            (\f ->
+               EvalCore
+                 (\x ->
+                    EvalCore
+                      (\y -> eval (ApplicationCore (ApplicationCore f y) x))))
+        , FunctionType
+            (FunctionType ValueType (FunctionType ValueType ValueType))
+            (FunctionType ValueType (FunctionType ValueType ValueType))))
     compose =
       ( Variable "compose"
-      , ( LambdaCore
-            (Variable "f")
-            (LambdaCore
-               (Variable "g")
-               (LambdaCore
-                  (Variable "x")
-                  (ApplicationCore
-                     (VariableCore (Variable "g"))
-                     (ApplicationCore
-                        (VariableCore (Variable "f"))
-                        (VariableCore (Variable "x"))))))
+      , ( EvalCore
+            (\f ->
+               EvalCore
+                 (\g ->
+                    EvalCore
+                      (\x -> eval (ApplicationCore g (ApplicationCore f x)))))
         , FunctionType
             (FunctionType ValueType ValueType)
             (FunctionType
@@ -73,10 +77,23 @@ funcs = [idf, compose]
                (FunctionType ValueType ValueType))))
 
 arrays :: [(Variable, (Core, Type))]
-arrays = [mapf, filterf, len, takef, dropf, empty, concatf, rev, zipw]
+arrays =
+  [ mapf
+  , filterf
+  , len
+  , takef
+  , dropf
+  , empty
+  , concatf
+  , rev
+  , zipw
+  , takeWhilef
+  , dropWhilef
+  , elemf
+  ]
   where
     zipw =
-      ( Variable "zipwith"
+      ( Variable "zipWith"
       , ( EvalCore
             (\f ->
                EvalCore
@@ -88,10 +105,29 @@ arrays = [mapf, filterf, len, takef, dropf, empty, concatf, rev, zipw]
                              (ArrayCore
                                 (V.zipWith
                                    (\x y ->
-                                      eval (ApplicationCore (ApplicationCore f x) y))
+                                      eval
+                                        (ApplicationCore (ApplicationCore f x) y))
                                    xs'
                                    ys'))
                            _ -> error "can only zip two arrays")))
+        , FunctionType ValueType (FunctionType ValueType ValueType)))
+    elemf =
+      ( Variable "elem"
+      , ( EvalCore
+            (\n ->
+               EvalCore
+                 (\xs ->
+                    case xs of
+                      (ArrayCore xs') ->
+                        (ConstantCore
+                           (BoolConstant
+                              (V.elem (coreToValue n) (fmap coreToValue xs'))))
+                      _ ->
+                        error
+                          ("can only check elements from arrays, args: " <>
+                           T.unpack (prettyCore n) <>
+                           " " <>
+                           T.unpack (prettyCore xs))))
         , FunctionType ValueType (FunctionType ValueType ValueType)))
     takef =
       ( Variable "take"
@@ -149,6 +185,44 @@ arrays = [mapf, filterf, len, takef, dropf, empty, concatf, rev, zipw]
                   (ArrayCore xs') -> (ConstantCore (BoolConstant (V.null xs')))
                   _ -> error "can only check if arrays are empty"))
         , FunctionType ValueType ValueType))
+    dropWhilef =
+      ( Variable "dropWhile"
+      , ( EvalCore
+            (\f ->
+               EvalCore
+                 (\xs ->
+                    case xs of
+                      (ArrayCore xs') ->
+                        (ArrayCore
+                           (V.dropWhile
+                              (\x ->
+                                 case eval (ApplicationCore f x) of
+                                   ConstantCore (BoolConstant b) -> b
+                                   _ -> True)
+                              xs'))
+                      _ -> error "can only dropWhile over arrays"))
+        , FunctionType
+            (FunctionType ValueType ValueType)
+            (FunctionType ValueType ValueType)))
+    takeWhilef =
+      ( Variable "takeWhile"
+      , ( EvalCore
+            (\f ->
+               EvalCore
+                 (\xs ->
+                    case xs of
+                      (ArrayCore xs') ->
+                        (ArrayCore
+                           (V.takeWhile
+                              (\x ->
+                                 case eval (ApplicationCore f x) of
+                                   ConstantCore (BoolConstant b) -> b
+                                   _ -> True)
+                              xs'))
+                      _ -> error "can only takeWhile over arrays"))
+        , FunctionType
+            (FunctionType ValueType ValueType)
+            (FunctionType ValueType ValueType)))
     filterf =
       ( Variable "filter"
       , ( EvalCore
