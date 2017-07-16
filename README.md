@@ -50,15 +50,23 @@ Obtain this list via `--browse`:
 > :: Value → Value → Value
 >= :: Value → Value → Value
 compose :: (Value → Value) → (Value → Value) → Value → Value
+concat :: Value → Value
 drop :: Value → Value → Value
+dropWhile :: (Value → Value) → Value → Value
+elem :: Value → Value → Value
+empty :: Value → Value
 filter :: (Value → Value) → Value → Value
+flip :: (Value → Value → Value) → Value → Value → Value
 get :: Value → Value → Value
 id :: Value → Value
 length :: Value → Value
 map :: (Value → Value) → Value → Value
 modify :: Value → (Value → Value) → Value → Value
+reverse :: Value → Value
 set :: Value → Value → Value → Value
 take :: Value → Value → Value
+takeWhile :: (Value → Value) → Value → Value
+zipWith :: (Value → Value) → Value → Value → Value
 ```
 
 ## Syntactic sugar

@@ -110,7 +110,9 @@ arrays =
                                    xs'
                                    ys'))
                            _ -> error "can only zip two arrays")))
-        , FunctionType ValueType (FunctionType ValueType ValueType)))
+        , FunctionType
+            (FunctionType ValueType ValueType)
+            (FunctionType ValueType (FunctionType ValueType ValueType))))
     elemf =
       ( Variable "elem"
       , ( EvalCore
