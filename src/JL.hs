@@ -72,8 +72,34 @@ funcs = [idf, compose]
                (FunctionType ValueType ValueType))))
 
 arrays :: [(Variable, (Core, Type))]
-arrays = [mapf, filterf, len]
+arrays = [mapf, filterf, len, takef, dropf]
   where
+    takef =
+      ( Variable "take"
+      , ( EvalCore
+            (\n ->
+               EvalCore
+                 (\xs ->
+                    case (n, xs) of
+                      (ConstantCore (NumberConstant n'), ArrayCore xs') ->
+                        (ArrayCore (V.take (round n') xs'))
+                      _ -> error "can only take from arrays"))
+        , FunctionType
+            ValueType
+            (FunctionType ValueType ValueType)))
+    dropf =
+      ( Variable "drop"
+      , ( EvalCore
+            (\n ->
+               EvalCore
+                 (\xs ->
+                    case (n, xs) of
+                      (ConstantCore (NumberConstant n'), ArrayCore xs') ->
+                        (ArrayCore (V.drop (round n') xs'))
+                      _ -> error "can only drop from arrays"))
+        , FunctionType
+            ValueType
+            (FunctionType ValueType ValueType)))
     len =
       ( Variable "length"
       , ( (EvalCore
@@ -82,9 +108,7 @@ arrays = [mapf, filterf, len]
                   (ArrayCore xs') ->
                     (ConstantCore (NumberConstant (fromIntegral (V.length xs'))))
                   _ -> error "take length of arrays"))
-        , FunctionType
-            ValueType
-            ValueType))
+        , FunctionType ValueType ValueType))
     filterf =
       ( Variable "filter"
       , ( EvalCore
@@ -113,10 +137,7 @@ arrays = [mapf, filterf, len]
                     case xs of
                       (ArrayCore xs') ->
                         (ArrayCore
-                           (fmap
-                              (\x ->
-                                 (eval (ApplicationCore f (x))))
-                              xs'))
+                           (fmap (\x -> (eval (ApplicationCore f (x)))) xs'))
                       _ -> error "can only map over arrays"))
         , FunctionType
             (FunctionType ValueType ValueType)
