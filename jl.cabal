@@ -24,7 +24,7 @@ library
         JL.Inferer
         JL.Interpreter
         JL.Printer
-  build-depends:       base >= 4.7 && < 5, attoparsec, mtl, text, containers, aeson, bytestring, vector, parsec, exceptions, text, containers, text, unordered-containers
+  build-depends:       base >= 4.7 && < 5, attoparsec, mtl, text, containers, aeson, bytestring, vector, parsec, exceptions, text, containers, text, unordered-containers, scientific
   default-language:    Haskell2010
 
 executable jl

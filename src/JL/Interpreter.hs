@@ -9,48 +9,70 @@
 module JL.Interpreter where
 
 import           Control.Monad.Writer
-import           Data.Aeson
 import qualified Data.Text as T
 import           JL.Printer
 import           JL.Types
 
--- | Eval expression.
-eval :: Expression -> Expression
-eval (ApplicationExpression op arg) =
+-- | Eval core.
+eval :: Core -> Core
+eval (ApplicationCore op arg) =
   case eval op of
-    LambdaExpression param _ expr ->
+    LambdaCore param expr ->
       case eval arg of
-        a@VariableExpression {} ->
-          error (T.unpack (prettyExp a <> " is not in scope!"))
+        a@VariableCore {} ->
+          error (T.unpack (prettyCore a <> " is not in scope!"))
         a -> eval (subst param a expr)
-    EvalExpression f -> f (eval arg)
-    _ -> error (T.unpack (prettyExp op <> " is not a function!"))
-eval (IfExpression c a b) =
+    EvalCore f -> f (eval arg)
+    _ -> error (T.unpack (prettyCore op <> " is not a function!"))
+eval (IfCore c a b) =
   case eval c of
-    ValueExpression (Bool True) -> eval a
-    ValueExpression (Bool False) -> eval b
+    ConstantCore (BoolConstant True) -> eval a
+    ConstantCore (BoolConstant False) -> eval b
     _ -> error ("type error for if condition, should be bool")
-eval (InfixExpression a f b) =
-  eval
-    (ApplicationExpression (ApplicationExpression (VariableExpression f) a) b)
-eval (RecordExpression hms) =
-  RecordExpression (fmap eval hms)
+eval (RecordCore hms) =
+  RecordCore (fmap eval hms)
 eval e = e
 
 -- | Substitute name in function body.
-subst :: Variable -> Expression -> Expression -> Expression
-subst name val e@(VariableExpression name')
+subst :: Variable -> Core -> Core -> Core
+subst name val e@(VariableCore name')
   | name == name' = val
   | otherwise = e
-subst name val (LambdaExpression name' ty e)
-  | name /= name' = LambdaExpression name' ty (subst name val e)
-subst name val (ApplicationExpression f a) =
-  ApplicationExpression (subst name val f) (subst name val a)
-subst name val (IfExpression f a b) =
-  IfExpression (subst name val f) (subst name val a) (subst name val b)
-subst name val (InfixExpression a f b) =
-  ApplicationExpression
-    (ApplicationExpression (subst name val (VariableExpression f)) (subst name val a))
-    (subst name val b)
-subst name val (RecordExpression hm) = RecordExpression (fmap (subst name val) hm)
+subst name val (LambdaCore name' e)
+  | name /= name' = LambdaCore name' (subst name val e)
+subst name val (ApplicationCore f a) =
+  ApplicationCore (subst name val f) (subst name val a)
+subst name val (IfCore f a b) =
+  IfCore (subst name val f) (subst name val a) (subst name val b)
+subst name val (RecordCore hm) = RecordCore (fmap (subst name val) hm)
 subst _ _ e = e
+
+-- | Remove syntactic sugar and convert into executable form.
+desugar :: Expression -> Core
+desugar =
+  \case
+    (InfixExpression a f b) ->
+      ApplicationCore (ApplicationCore (VariableCore f) (desugar a)) (desugar b)
+    VariableExpression v -> VariableCore v
+    LambdaExpression v _ e -> LambdaCore v (desugar e)
+    ApplicationExpression f a -> ApplicationCore (desugar f) (desugar a)
+    IfExpression a b c -> IfCore (desugar a) (desugar b) (desugar c)
+    RecordExpression pars -> RecordCore (fmap desugar pars)
+    ArrayExpression as -> ArrayCore (fmap desugar as)
+    ConstantExpression c -> ConstantCore c
+    SubscriptExpression subscripted subscripts ->
+      let index =
+            \c k ->
+              ApplicationCore
+                (ApplicationCore
+                   (VariableCore (Variable "get"))
+                   (case k of
+                      ExpressionSubscript e -> desugar e
+                      PropertySubscript t -> ConstantCore (StringConstant t)))
+                c
+      in case subscripted of
+           WildcardSubscripted ->
+             LambdaCore
+               (Variable "a'")
+               (foldl index (VariableCore (Variable "a'")) subscripts)
+           ExpressionSubscripted e -> foldl index (desugar e) subscripts

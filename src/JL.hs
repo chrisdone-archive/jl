@@ -12,10 +12,8 @@ import qualified Data.HashMap.Strict as HM
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import           Data.Text (Text)
-import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import           Data.Vector (Vector)
 import qualified Data.Vector as V
 import           JL.Inferer
 import           JL.Interpreter
@@ -35,72 +33,67 @@ repl inp js =
             (prettyExp expr <> " : " <>
              prettyType (infer context expr (map TypeVariable [1 ..])))
           T.putStrLn
-            (prettyExp
-               (eval (foldl (\e (v, (f, _)) -> subst v f e) expr (M.toList bindings))))
-          where expr = ApplicationExpression expr0 (ValueExpression j)
+            (prettyCore
+               (eval (foldl (\e (v, (f, _)) -> subst v f e) (desugar expr) (M.toList bindings))))
+          where expr = ApplicationExpression expr0 (valueToExpression j)
 
 context :: Map Variable Type
 context = fmap snd bindings
 
-scope :: Map Variable Expression
+scope :: Map Variable Core
 scope = fmap fst bindings
 
-bindings :: Map Variable (Expression, Type)
+bindings :: Map Variable (Core, Type)
 bindings = M.fromList (concat [arith, records, arrays, funcs])
 
-funcs :: [(Variable, (Expression, Type))]
+funcs :: [(Variable, (Core, Type))]
 funcs = [idf, compose]
   where
     idf =
       ( Variable "id"
-      , (EvalExpression (\x -> x), FunctionType ValueType ValueType))
+      , (EvalCore (\x -> x), FunctionType ValueType ValueType))
     compose =
       ( Variable "compose"
-      , ( LambdaExpression
-            (Variable "f")(VariableType (TypeVariable 0))
-            (LambdaExpression
-               (Variable "g") (VariableType (TypeVariable 2))
-               (LambdaExpression
-                  (Variable "x") (VariableType (TypeVariable 1))
-                  (ApplicationExpression
-                     (VariableExpression (Variable "g"))
-                     (ApplicationExpression
-                        (VariableExpression (Variable "f"))
-                        (VariableExpression (Variable "x"))))))
+      , ( LambdaCore
+            (Variable "f")
+            (LambdaCore
+               (Variable "g")
+               (LambdaCore
+                  (Variable "x")
+                  (ApplicationCore
+                     (VariableCore (Variable "g"))
+                     (ApplicationCore
+                        (VariableCore (Variable "f"))
+                        (VariableCore (Variable "x"))))))
         , FunctionType
             (FunctionType ValueType ValueType)
             (FunctionType
                (FunctionType ValueType ValueType)
                (FunctionType ValueType ValueType))))
 
-arrays :: [(Variable, (Expression, Type))]
+arrays :: [(Variable, (Core, Type))]
 arrays = [mapf, modifyf, filterf]
   where
     modifyf =
       ( Variable "modify"
-      , ( EvalExpression
+      , ( EvalCore
             (\key ->
-               EvalExpression
+               EvalCore
                  (\f ->
-                    EvalExpression
+                    EvalCore
                       (\obj ->
                          case (key, obj) of
-                           (ValueExpression (String k), ValueExpression (Object o)) ->
-                             ValueExpression
-                               (Object
+                           (ConstantCore (StringConstant k), (RecordCore o)) ->
+                             (RecordCore
                                   (HM.adjust
                                      (\v ->
-                                        case eval
-                                               (ApplicationExpression
-                                                  f
-                                                  (ValueExpression v)) of
-                                          ValueExpression vv -> vv
-                                          _ ->
-                                            error
-                                              "modify did not return a regular JSON value")
+                                        eval
+                                          (ApplicationCore
+                                             f
+                                             v))
                                      k
                                      o))
-                           _ -> error "type error for args")))
+                           _ -> error "type error for args to modify")))
         , FunctionType
             ValueType
             (FunctionType
@@ -108,118 +101,127 @@ arrays = [mapf, modifyf, filterf]
                (FunctionType ValueType ValueType))))
     mapf =
       ( Variable "map"
-      , ( EvalExpression
+      , ( EvalCore
             (\f ->
-               EvalExpression
+               EvalCore
                  (\xs ->
                     case xs of
-                      ValueExpression (Array xs') ->
-                        ValueExpression
-                          (Array
-                             (fmap
-                                (\x ->
-                                   toValue
-                                     (eval
-                                        (ApplicationExpression
-                                           f
-                                           (ValueExpression x))))
-                                xs'))
+                      (ArrayCore xs') ->
+                        (ArrayCore
+                           (fmap
+                              (\x ->
+                                 (eval (ApplicationCore f (x))))
+                              xs'))
                       _ -> error "can only map over arrays"))
         , FunctionType
             (FunctionType ValueType ValueType)
             (FunctionType ValueType ValueType)))
     filterf =
       ( Variable "filter"
-      , ( EvalExpression
+      , ( EvalCore
             (\f ->
-               EvalExpression
+               EvalCore
                  (\xs ->
                     case xs of
-                      ValueExpression (Array xs') ->
-                        ValueExpression
-                          (Array
-                             (V.filter
-                                (\x ->
-                                   case toValue
-                                          (eval
-                                             (ApplicationExpression
-                                                f
-                                                (ValueExpression x))) of
-                                     Bool b -> b
-                                     _ -> True)
-                                xs'))
-                      _ -> error "can only map over arrays"))
+                      (ArrayCore xs') ->
+                        (ArrayCore
+                           (V.filter
+                              (\x ->
+                                 case eval (ApplicationCore f x) of
+                                   ConstantCore (BoolConstant b) -> b
+                                   _ -> True)
+                              xs'))
+                      _ -> error "can only filter over arrays"))
         , FunctionType
             (FunctionType ValueType ValueType)
             (FunctionType ValueType ValueType)))
 
-arith :: [(Variable, (Expression, Type))]
+arith :: [(Variable, (Core, Type))]
 arith = [binop "*" (*)
   , binop "+" (+)
   , binop "-" (-)
   , binop "/" (/)]
   where binop name f =
           ( Variable name
-          , ( EvalExpression
+          , ( EvalCore
                 (\x ->
-                   EvalExpression
+                   EvalCore
                      (\y ->
                         case (x, y) of
-                          (ValueExpression (Number a), ValueExpression (Number b)) ->
-                            ValueExpression (Number (f a b))
-                          _ -> error "type error for arguments"))
+                          (ConstantCore (NumberConstant a), ConstantCore (NumberConstant b)) ->
+                            ConstantCore (NumberConstant (f a b))
+                          _ -> error ("type error for arguments to " <> show name)))
             , FunctionType ValueType (FunctionType ValueType ValueType)))
 
-records :: [(Variable, (Expression, Type))]
+records :: [(Variable, (Core, Type))]
 records = [getf
   , setf]
   where getf =
           ( Variable "get"
-          , ( EvalExpression
+          , ( EvalCore
                 (\key ->
-                   EvalExpression
+                   EvalCore
                      (\obj ->
-                        case (key, toValue obj) of
-                          (ValueExpression (String k), (Object o)) ->
-                            ValueExpression
+                        case (key, obj) of
+                          (ConstantCore (StringConstant k), RecordCore o) ->
                               (case HM.lookup k o of
                                  Nothing -> error ("missing key " <> show k)
                                  Just v -> v)
-                          (ValueExpression (Number i), (Array v)) ->
-                            ValueExpression
+                          (ConstantCore (NumberConstant i), (ArrayCore v)) ->
+
                               (case v V.!? (round i) of
                                  Nothing -> error ("missing array index " <> show i)
-                                 Just v -> v)
+                                 Just v' -> v')
                           _ -> error "type error for args"))
             , FunctionType ValueType (FunctionType ValueType ValueType)))
         setf =
           ( Variable "set"
-          , ( EvalExpression
+          , ( EvalCore
                 (\key ->
-                   EvalExpression
+                   EvalCore
                      (\val ->
-                        EvalExpression
+                        EvalCore
                           (\obj ->
                              case (key, val, obj) of
-                               (ValueExpression (String k), ValueExpression v, ValueExpression (Object o)) ->
-                                 ValueExpression (Object (HM.insert k v o))
-                               _ -> error "type error for args")))
+                               (ConstantCore (StringConstant k), v, RecordCore o) ->
+                                 (RecordCore (HM.insert k v o))
+                               _ -> error "type error in arguments to: set")))
             , FunctionType
                 ValueType
                 (FunctionType ValueType (FunctionType ValueType ValueType))))
 
-
-toValue :: Expression -> Value
-toValue =
+coreToValue :: Core -> Value
+coreToValue =
   \case
-    ValueExpression v -> v
-    RecordExpression hm -> Object (fmap toValue hm)
-    e -> error ("code generated invalid JSON: " <> T.unpack (prettyExp e))
+    ConstantCore v -> constantToValue v
+    RecordCore hm -> Object (fmap coreToValue hm)
+    ArrayCore a -> Array (fmap coreToValue a)
+    e -> error ("code generated invalid JSON: " <> T.unpack (prettyCore e))
 
--- data Value = Object !Object
---            | Array !Array
---            | String !Text
---            | Number !Scientific
---            | Bool !Bool
---            | Null
---              deriving (Eq, Read, Show, Typeable, Data, Generic)
+constantToValue :: Constant -> Value
+constantToValue =
+  \case
+    NullConstant -> Null
+    BoolConstant b -> Bool b
+    StringConstant s -> String s
+    NumberConstant n -> Number n
+
+valueToCore :: Value -> Core
+valueToCore =
+  \case
+    Object os -> RecordCore (fmap valueToCore os)
+    Array xs -> ArrayCore (fmap valueToCore xs)
+    Number n -> ConstantCore (NumberConstant n)
+    Bool n -> ConstantCore (BoolConstant n)
+    Null -> ConstantCore NullConstant
+    String t -> ConstantCore (StringConstant t)
+
+valueToExpression :: Value -> Expression
+valueToExpression =
+  \case
+    Object os -> RecordExpression (fmap valueToExpression os)
+    Array xs -> ArrayExpression (fmap valueToExpression xs)
+    Number n -> ConstantExpression (NumberConstant n)
+    Bool n -> ConstantExpression (BoolConstant n)
+    Null -> ConstantExpression NullConstant
+    String t -> ConstantExpression (StringConstant t)

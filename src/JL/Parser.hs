@@ -34,6 +34,7 @@ expressionParser = pipes
       ps <- sepBy1 dollars (equalToken Bar)
       case ps of
         [p] -> pure p
+        [] -> unexpected "empty expression"
         (p:ps) ->
           pure
             (foldl
@@ -49,15 +50,16 @@ expressionParser = pipes
       ps <- sepBy1 dollarable (equalToken Dollar)
       case ps of
         [p] -> pure p
-        (p:ps) -> pure (foldl ApplicationExpression p ps)
+        (p:ps') -> pure (foldl ApplicationExpression p ps')
+        [] -> unexpected "empty expression"
       where
         dollarable =
           record <|> lambda <|> ifParser <|> infix' <|> app <|> atomic
     record = do
       _ <- equalToken OpenBrace
-      pairs <- sepBy pair (equalToken Comma <?> curlyQuotes ",")
+      pairs' <- sepBy pair (equalToken Comma <?> curlyQuotes ",")
       _ <- equalToken CloseBrace <?> ("closing brace " <> curlyQuotes "}")
-      pure (RecordExpression (HM.fromList pairs))
+      pure (RecordExpression (HM.fromList pairs'))
       where
         pair = do
           var <-
@@ -120,7 +122,7 @@ expressionParser = pipes
               then do
                 k <- expressionParser
                 _ <- equalToken CloseBracket
-                collectsubscripts (ks . (k :)) a
+                collectsubscripts (ks . (ExpressionSubscript k :)) a
               else do
                 dot <- fmap (const True) (equalToken Period) <|> pure False
                 if dot
@@ -131,27 +133,18 @@ expressionParser = pipes
                         (consumeToken
                            (\case
                               VariableToken i ->
-                                Just (ValueExpression (String i))
+                                Just i
                               _ -> Nothing))
-                    collectsubscripts (ks . (k :)) a
+                    collectsubscripts (ks . (PropertySubscript k :)) a
                   else pure (ks [], a)
       a <- varParser <|> parensExpr
-      (ks, b) <- collectsubscripts id a
+      (subscripts, b) <- collectsubscripts id a
       pure
-        (let index =
-               \c k ->
-                 ApplicationExpression
-                   (ApplicationExpression
-                      (VariableExpression (Variable "get"))
-                      k)
-                   c
-         in case a of
-              VariableExpression (Variable "_") ->
-                LambdaExpression
-                  (Variable "a'")
-                  ValueType
-                  (foldl index (VariableExpression (Variable "a'")) ks)
-              _ -> foldl index b ks)
+        (SubscriptExpression (case b of
+                                VariableExpression (Variable "_") ->
+                                  WildcardSubscripted
+                                _ -> ExpressionSubscripted a)
+                             subscripts)
     unambiguous = funcOp <|> record <|> atomic
     parensExpr = parens expressionParser
 
@@ -202,7 +195,7 @@ atomic =
               (\case
                  Integer c -> Just c
                  _ -> Nothing)
-          pure (ValueExpression (Number (fromIntegral c)))
+          pure (ConstantExpression (NumberConstant (fromIntegral c)))
     decimalParser = go <?> "decimal (e.g. 42, 123)"
       where
         go = do
@@ -211,7 +204,7 @@ atomic =
               (\case
                  Decimal c -> Just c
                  _ -> Nothing)
-          pure (ValueExpression (Number (realToFrac c)))
+          pure (ConstantExpression (NumberConstant (realToFrac c)))
     boolParser = go <?> "boolean (e.g. true, false)"
       where
         go = do
@@ -221,7 +214,7 @@ atomic =
                  TrueToken -> pure True
                  FalseToken -> pure False
                  _ -> Nothing)
-          pure (ValueExpression (Bool c))
+          pure (ConstantExpression (BoolConstant c))
     nullParser = go <?> "null"
       where
         go = do
@@ -230,7 +223,7 @@ atomic =
               (\case
                  NullToken -> pure ()
                  _ -> Nothing)
-          pure (ValueExpression Null)
+          pure (ConstantExpression NullConstant)
 
 stringParser :: TokenParser Expression
 stringParser = go <?> "string (e.g. \"a\")"
@@ -241,7 +234,7 @@ stringParser = go <?> "string (e.g. \"a\")"
           (\case
              StringToken c -> Just c
              _ -> Nothing)
-      pure (ValueExpression (String c))
+      pure (ConstantExpression (StringConstant c))
 
 lambda :: TokenParser (Expression)
 lambda = do

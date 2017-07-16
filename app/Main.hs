@@ -39,13 +39,13 @@ main = do
               case decode js of
                 Nothing -> error "invalid JSON"
                 Just j ->
-                  let expr = ApplicationExpression expr0 (ValueExpression j)
+                  let expr = ApplicationExpression expr0 (valueToExpression j)
                   in case infer context expr (map TypeVariable [1 ..]) of
                        !_ ->
                          case eval
                                 (foldl
                                    (\e (v, (f, _)) -> subst v f e)
-                                   expr
+                                   (desugar expr)
                                    (M.toList bindings)) of
                            v ->
                              if aslines
@@ -53,9 +53,9 @@ main = do
                                       "\n"
                                       (map
                                          encode
-                                         (V.toList (asArray (toValue v)))) <>
+                                         (V.toList (asArray (coreToValue v)))) <>
                                     "\n"
-                               else encode (toValue v) <> "\n"
+                               else encode (coreToValue v) <> "\n"
                              where asArray =
                                      \case
                                        Array xs -> xs

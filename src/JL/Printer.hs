@@ -8,12 +8,10 @@
 module JL.Printer where
 
 import           Control.Monad.Writer
-import           Data.Aeson
-import qualified Data.ByteString.Lazy as L
+import qualified Data.HashMap.Strict as HM
 import           Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.HashMap.Strict as HM
+import qualified Data.Vector as V
 import           JL.Types
 
 -- | Pretty printing for type.
@@ -52,7 +50,6 @@ prettyExp = go
   where
     go t =
       case t of
-        ValueExpression v -> T.decodeUtf8 (L.toStrict (encode v))
         VariableExpression (Variable name) -> name
         LambdaExpression (Variable n) _ty e ->
           "(\\" <> n <> " -> " <> go e <> ")"
@@ -68,7 +65,54 @@ prettyExp = go
             ", "
             (map (\(k, v) -> k <> ": " <> prettyExp v) (HM.toList hm)) <>
           "}"
-        EvalExpression _ -> "<builtin>"
+        SubscriptExpression o ks ->
+          (case o of
+             WildcardSubscripted -> "_"
+             ExpressionSubscripted e -> go e) <>
+          mconcat (map prettySubcript ks)
+        ArrayExpression as ->
+          "[" <> T.intercalate ", " (map prettyExp (V.toList as)) <> "]"
+        ConstantExpression c -> prettyConstant c
+
+-- | Pretty printing for core.
+prettyCore :: Core -> Text
+prettyCore = go
+  where
+    go t =
+      case t of
+        VariableCore (Variable name) -> name
+        LambdaCore (Variable n) e -> "(\\" <> n <> " -> " <> go e <> ")"
+        ApplicationCore f x -> "(" <> go f <> " (" <> go x <> "))"
+        IfCore a b c ->
+          "if " <> prettyCore a <> " then " <> prettyCore b <> " else " <>
+          prettyCore c
+        RecordCore hm ->
+          "{" <>
+          T.intercalate
+            ", "
+            (map (\(k, v) -> k <> ": " <> prettyCore v) (HM.toList hm)) <>
+          "}"
+        EvalCore _ -> "<internal>"
+        ArrayCore as ->
+          "[" <> T.intercalate ", " (map prettyCore (V.toList as)) <> "]"
+        ConstantCore c -> prettyConstant c
+
+prettyConstant :: Constant -> Text
+prettyConstant =
+  \case
+    NumberConstant s -> T.pack (show s)
+    StringConstant t -> T.pack (show t)
+    BoolConstant b ->
+      if b
+        then "true"
+        else "false"
+    NullConstant -> "null"
+
+prettySubcript :: Subscript -> Text
+prettySubcript =
+  \case
+    ExpressionSubscript e -> "[" <> prettyExp e <> "]"
+    PropertySubscript p -> "." <> p
 
 prettyVariable :: Variable -> Text
 prettyVariable (Variable t) = t

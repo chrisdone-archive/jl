@@ -41,7 +41,7 @@ check ctx expr =
     LambdaExpression x xty body -> do
       (rty, cs) <- check (M.insert x xty ctx) body
       return (FunctionType xty rty, cs)
-    ValueExpression {} -> return (ValueType, mempty)
+    ConstantExpression {} -> return (ValueType, mempty)
     ApplicationExpression f x -> do
       (fty, cs1) <- check ctx f
       (xty, cs2) <- check ctx x
@@ -74,11 +74,38 @@ check ctx expr =
     RecordExpression pairs -> do
       cs <-
         foldM
-          (\cs (k, e) -> do
-             (ty, cs') <- check ctx e
-             pure cs')
+          (\cs (_, e) -> do
+             (pty, cs') <- check ctx e
+             pure (S.insert (pty, ValueType) (cs <> cs')))
           mempty
           (HM.toList pairs)
+      pure (ValueType, cs)
+    SubscriptExpression e ks -> do
+      (_, c1) <-
+        (case e of
+           ExpressionSubscripted es -> check ctx es
+           WildcardSubscripted -> pure (ValueType, mempty))
+      cs <-
+        foldM
+          (\cs s ->
+             case s of
+               PropertySubscript {} -> pure cs
+               ExpressionSubscript es -> do
+                 (pty, cs') <- check ctx es
+                 pure (S.insert (pty, ValueType) (cs <> cs')))
+          c1
+          ks
+      sym <- generateTypeVariable
+      let rty = VariableType sym
+      pure (rty, cs)
+    ArrayExpression as -> do
+      cs <-
+        foldM
+          (\cs e -> do
+             (pty, cs') <- check ctx e
+             pure (S.insert (pty, ValueType) (cs <> cs')))
+          mempty
+          as
       pure (ValueType, cs)
 
 -- | Generate a fresh type variable.
