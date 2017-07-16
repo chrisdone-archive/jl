@@ -137,21 +137,50 @@ arrays = [mapf, modifyf, filterf]
             (FunctionType ValueType ValueType)))
 
 arith :: [(Variable, (Core, Type))]
-arith = [binop "*" (*)
+arith =
+  [ binop "*" (*)
   , binop "+" (+)
   , binop "-" (-)
-  , binop "/" (/)]
-  where binop name f =
-          ( Variable name
-          , ( EvalCore
-                (\x ->
-                   EvalCore
-                     (\y ->
-                        case (x, y) of
-                          (ConstantCore (NumberConstant a), ConstantCore (NumberConstant b)) ->
-                            ConstantCore (NumberConstant (f a b))
-                          _ -> error ("type error for arguments to " <> show name)))
-            , FunctionType ValueType (FunctionType ValueType ValueType)))
+  , binop "/" (/)
+  , boolop "/=" (/=)
+  , boolop "=" (==)
+  , boolnumop ">" (>)
+  , boolnumop "<" (<)
+  , boolnumop ">=" (>=)
+  , boolnumop "<=" (<=)
+  ]
+  where
+    binop name f =
+      ( Variable name
+      , ( EvalCore
+            (\x ->
+               EvalCore
+                 (\y ->
+                    case (x, y) of
+                      (ConstantCore (NumberConstant a), ConstantCore (NumberConstant b)) ->
+                        ConstantCore (NumberConstant (f a b))
+                      _ -> error ("type error for arguments to " <> show name)))
+        , FunctionType ValueType (FunctionType ValueType ValueType)))
+    boolop name f =
+      ( Variable name
+      , ( EvalCore
+            (\x ->
+               EvalCore
+                 (\y ->
+                    ConstantCore
+                      (BoolConstant (f (coreToValue x) (coreToValue y)))))
+        , FunctionType ValueType (FunctionType ValueType ValueType)))
+    boolnumop name f =
+      ( Variable name
+      , ( EvalCore
+            (\x ->
+               EvalCore
+                 (\y ->
+                    case (x, y) of
+                      (ConstantCore (NumberConstant a), ConstantCore (NumberConstant b)) ->
+                        ConstantCore (BoolConstant (f a b))
+                      _ -> error ("type error for arguments to " <> show name)))
+        , FunctionType ValueType (FunctionType ValueType ValueType)))
 
 records :: [(Variable, (Core, Type))]
 records = [getf

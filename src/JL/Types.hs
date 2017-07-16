@@ -89,7 +89,6 @@ data Token
   | CloseParen
   | OpenBracket
   | CloseBracket
-  | Equals
   | VariableToken !Text
   | StringToken !Text
   | Operator !Text

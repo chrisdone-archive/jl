@@ -54,7 +54,6 @@ tokenTokenizer prespaces =
     , atom CloseBrace "}"
     , atom OpenBracket "["
     , atom CloseBracket "]"
-    , atom Equals "="
     , atom Bar "|"
     , atom Dollar "$"
     , atom Comma ","
@@ -68,11 +67,13 @@ tokenTokenizer prespaces =
                    , string "+"
                    , try (string ">=")
                    , try (string "<=")
+                   , try (string "/=")
                    , string ">"
                    , string "<"
                    , string "/"
+                   , string "="
                    ]))
-             "operator (e.g. *, <, +, etc.)"
+             "operator (e.g. *, <, +, =, etc.)"
          when
            (null prespaces)
            (unexpected
@@ -317,7 +318,6 @@ tokenStr tok =
     Backslash -> curlyQuotes ("backslash " ++ curlyQuotes "\\")
     OpenParen -> "opening parenthesis " ++ curlyQuotes "("
     CloseParen -> "closing parenthesis " ++ curlyQuotes ")"
-    Equals -> curlyQuotes "="
     VariableToken t -> "variable " ++ curlyQuotes (T.unpack t)
     StringToken !t -> "string " ++ show t
     Operator !t -> "operator " ++ curlyQuotes (T.unpack t)

@@ -8,7 +8,6 @@
 module JL.Parser where
 
 import           Control.Monad.Catch
-import           Data.Aeson
 import qualified Data.HashMap.Strict as HM
 import           Data.Monoid
 import           Data.Text (Text)
@@ -16,7 +15,6 @@ import qualified Data.Text as T
 import           JL.Tokenizer
 import           JL.Types
 import           Text.Parsec hiding (satisfy, anyToken)
-import JL.Printer
 
 parseText :: MonadThrow m => SourceName -> Text -> m Expression
 parseText fp inp =
@@ -35,7 +33,7 @@ expressionParser = pipes
       case ps of
         [p] -> pure p
         [] -> unexpected "empty expression"
-        (p:ps) ->
+        (p:ps') ->
           pure
             (foldl
                (\x y ->
@@ -45,7 +43,7 @@ expressionParser = pipes
                        x)
                     y)
                p
-               ps)
+               ps')
     dollars = do
       ps <- sepBy1 dollarable (equalToken Dollar)
       case ps of
