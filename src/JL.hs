@@ -73,8 +73,26 @@ funcs = [idf, compose]
                (FunctionType ValueType ValueType))))
 
 arrays :: [(Variable, (Core, Type))]
-arrays = [mapf, filterf, len, takef, dropf, empty, concatf]
+arrays = [mapf, filterf, len, takef, dropf, empty, concatf, rev, zipw]
   where
+    zipw =
+      ( Variable "zipwith"
+      , ( EvalCore
+            (\f ->
+               EvalCore
+                 (\xs ->
+                    EvalCore
+                      (\ys ->
+                         case (xs, ys) of
+                           (ArrayCore xs', ArrayCore ys') ->
+                             (ArrayCore
+                                (V.zipWith
+                                   (\x y ->
+                                      eval (ApplicationCore (ApplicationCore f x) y))
+                                   xs'
+                                   ys'))
+                           _ -> error "can only zip two arrays")))
+        , FunctionType ValueType (FunctionType ValueType ValueType)))
     takef =
       ( Variable "take"
       , ( EvalCore
@@ -85,9 +103,7 @@ arrays = [mapf, filterf, len, takef, dropf, empty, concatf]
                       (ConstantCore (NumberConstant n'), ArrayCore xs') ->
                         (ArrayCore (V.take (round n') xs'))
                       _ -> error "can only take from arrays"))
-        , FunctionType
-            ValueType
-            (FunctionType ValueType ValueType)))
+        , FunctionType ValueType (FunctionType ValueType ValueType)))
     dropf =
       ( Variable "drop"
       , ( EvalCore
@@ -98,9 +114,7 @@ arrays = [mapf, filterf, len, takef, dropf, empty, concatf]
                       (ConstantCore (NumberConstant n'), ArrayCore xs') ->
                         (ArrayCore (V.drop (round n') xs'))
                       _ -> error "can only drop from arrays"))
-        , FunctionType
-            ValueType
-            (FunctionType ValueType ValueType)))
+        , FunctionType ValueType (FunctionType ValueType ValueType)))
     concatf =
       ( Variable "concat"
       , ( (EvalCore
@@ -109,6 +123,14 @@ arrays = [mapf, filterf, len, takef, dropf, empty, concatf]
                   (ArrayCore xs') ->
                     (ArrayCore (V.concat (map coreToArray (V.toList xs'))))
                   _ -> error "can only take length of arrays"))
+        , FunctionType ValueType ValueType))
+    rev =
+      ( Variable "reverse"
+      , ( (EvalCore
+             (\xs ->
+                case xs of
+                  (ArrayCore xs') -> (ArrayCore (V.reverse xs'))
+                  _ -> error "can only reverse an array or a string"))
         , FunctionType ValueType ValueType))
     len =
       ( Variable "length"
@@ -124,8 +146,7 @@ arrays = [mapf, filterf, len, takef, dropf, empty, concatf]
       , ( (EvalCore
              (\xs ->
                 case xs of
-                  (ArrayCore xs') ->
-                    (ConstantCore (BoolConstant (V.null xs')))
+                  (ArrayCore xs') -> (ConstantCore (BoolConstant (V.null xs')))
                   _ -> error "can only check if arrays are empty"))
         , FunctionType ValueType ValueType))
     filterf =
