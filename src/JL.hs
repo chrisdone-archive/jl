@@ -12,6 +12,7 @@ import qualified Data.HashMap.Strict as HM
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import           Data.Text (Text)
+import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Vector as V
@@ -72,7 +73,7 @@ funcs = [idf, compose]
                (FunctionType ValueType ValueType))))
 
 arrays :: [(Variable, (Core, Type))]
-arrays = [mapf, filterf, len, takef, dropf, empty]
+arrays = [mapf, filterf, len, takef, dropf, empty, concatf]
   where
     takef =
       ( Variable "take"
@@ -100,6 +101,15 @@ arrays = [mapf, filterf, len, takef, dropf, empty]
         , FunctionType
             ValueType
             (FunctionType ValueType ValueType)))
+    concatf =
+      ( Variable "concat"
+      , ( (EvalCore
+             (\xs ->
+                case xs of
+                  (ArrayCore xs') ->
+                    (ArrayCore (V.concat (map coreToArray (V.toList xs'))))
+                  _ -> error "can only take length of arrays"))
+        , FunctionType ValueType ValueType))
     len =
       ( Variable "length"
       , ( (EvalCore
@@ -151,6 +161,12 @@ arrays = [mapf, filterf, len, takef, dropf, empty]
         , FunctionType
             (FunctionType ValueType ValueType)
             (FunctionType ValueType ValueType)))
+
+coreToArray :: Core -> V.Vector Core
+coreToArray =
+  \case
+    ArrayCore xs -> xs
+    x -> error ("expected array but found single value: " <> T.unpack (prettyCore x))
 
 arith :: [(Variable, (Core, Type))]
 arith =
