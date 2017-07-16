@@ -72,33 +72,8 @@ funcs = [idf, compose]
                (FunctionType ValueType ValueType))))
 
 arrays :: [(Variable, (Core, Type))]
-arrays = [mapf, modifyf, filterf]
+arrays = [mapf, filterf]
   where
-    modifyf =
-      ( Variable "modify"
-      , ( EvalCore
-            (\key ->
-               EvalCore
-                 (\f ->
-                    EvalCore
-                      (\obj ->
-                         case (key, obj) of
-                           (ConstantCore (StringConstant k), (RecordCore o)) ->
-                             (RecordCore
-                                  (HM.adjust
-                                     (\v ->
-                                        eval
-                                          (ApplicationCore
-                                             f
-                                             v))
-                                     k
-                                     o))
-                           _ -> error "type error for args to modify")))
-        , FunctionType
-            ValueType
-            (FunctionType
-               (FunctionType ValueType ValueType)
-               (FunctionType ValueType ValueType))))
     mapf =
       ( Variable "map"
       , ( EvalCore
@@ -184,8 +159,33 @@ arith =
 
 records :: [(Variable, (Core, Type))]
 records = [getf
-  , setf]
-  where getf =
+  , setf,modifyf]
+  where modifyf =
+          ( Variable "modify"
+          , ( EvalCore
+                (\key ->
+                   EvalCore
+                     (\f ->
+                        EvalCore
+                          (\obj ->
+                             case (key, obj) of
+                               (ConstantCore (StringConstant k), (RecordCore o)) ->
+                                 (RecordCore
+                                      (HM.adjust
+                                         (\v ->
+                                            eval
+                                              (ApplicationCore
+                                                 f
+                                                 v))
+                                         k
+                                         o))
+                               _ -> error "type error for args to modify")))
+            , FunctionType
+                ValueType
+                (FunctionType
+                   (FunctionType ValueType ValueType)
+                   (FunctionType ValueType ValueType))))
+        getf =
           ( Variable "get"
           , ( EvalCore
                 (\key ->
