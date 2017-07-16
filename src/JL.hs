@@ -90,8 +90,30 @@ arrays =
   , takeWhilef
   , dropWhilef
   , elemf
+  , foldf
   ]
   where
+    foldf =
+      ( Variable "fold"
+      , ( EvalCore
+            (\cons ->
+               EvalCore
+                 (\nil ->
+                    EvalCore
+                      (\xs ->
+                         case xs of
+                           ArrayCore xs' ->
+                             (V.foldl
+                                (\acc x ->
+                                   eval
+                                     (ApplicationCore
+                                        (ApplicationCore cons acc)
+                                        x))
+                                nil
+                                xs')
+                           _ -> error "can only zip two arrays")))
+        , (FunctionType (FunctionType ValueType (FunctionType ValueType ValueType))
+                        (FunctionType ValueType (FunctionType ValueType ValueType)))))
     zipw =
       ( Variable "zipWith"
       , ( EvalCore
