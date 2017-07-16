@@ -34,7 +34,9 @@ Objects:
 
     {foo: 123, bar: 34.3, "a:b": "hi"}
 
-## Core functions
+## Library of functions
+
+Core functions
 
 ``` haskell
 id :: Value -> Value
@@ -43,6 +45,12 @@ set :: Value -> Value -> Value -> Value
 modify :: (Value -> Value) -> Value -> Value -> Value
 map :: (Value -> Value) -> Value -> Value
 filter :: (Value -> Value) -> Value -> Value
+```
+
+Arithmetic:
+
+``` haskell
+(*), (+), (-), (/), (/=), (==), (>), (<), (>=), (<=)
 ```
 
 ## Syntactic sugar
