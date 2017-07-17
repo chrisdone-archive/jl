@@ -57,6 +57,7 @@ elem :: Value → Value → Value
 empty :: Value → Value
 filter :: (Value → Value) → Value → Value
 flip :: (Value → Value → Value) → Value → Value → Value
+fold :: (Value → Value → Value) → Value → Value → Value
 get :: Value → Value → Value
 id :: Value → Value
 length :: Value → Value
@@ -66,7 +67,7 @@ reverse :: Value → Value
 set :: Value → Value → Value → Value
 take :: Value → Value → Value
 takeWhile :: (Value → Value) → Value → Value
-zipWith :: (Value → Value) → Value → Value → Value
+zipWith :: (Value → Value → Value) → Value → Value → Value
 ```
 
 ## Syntactic sugar
