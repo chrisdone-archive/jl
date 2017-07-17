@@ -104,7 +104,7 @@ Notice the `ps` property comes by taking the `html_url` of all the parents.
 Filtering is easy, simply write a function that returns true:
 
 ``` haskell
-$ cat .. | jl 'map (\o -> { sha: o.sha, ps: map _.sha o.parents }) | filter (\o -> length o.ps > 1)'
+jl 'map (\o -> { sha: o.sha, ps: map _.sha o.parents }) | filter (\o -> length o.ps > 1)'
 ```
 
 # Available functions
