@@ -1,15 +1,13 @@
-# jl [alpha]
+# jl
 
-JSON lambda-calculus language.
-
-The JL language is a simple language with syntactic sugar for querying
-and manipulating JSON structures.
+JSON Lambda is a tiny functional language for querying and
+manipulating JSON.
 
 Example:
 
 ``` haskell
-$ cat github.json | jl 'map $ \o -> {sha:o.sha,ps:map _.sha o.parents}'
-[{"sha":"7b81a836c31500e685d043729259affa8b670a87","ps":["c538237f4e4c381d35f1c15497c95f659fd55850","ca12bd9b5d15c0c4e5bd01d706ddbb3f4edefd36"]},{"sha":"c538237f4e4c381d35f1c15497c95f659fd55850","ps":["4a6241be0697bbe4ef420c43689c34af59e50330"]},{"sha":"4a6241be0697bbe4ef420c43689c34af59e50330","ps":["1900c7bcac76777782505c89a032c18a65fcc487"]},{"sha":"1900c7bcac76777782505c89a032c18a65fcc487","ps":["578d536233b62884764b3c5c6cd42077958d6a49"]},{"sha":"578d536233b62884764b3c5c6cd42077958d6a49","ps":["b0d6d283102a171c74db142b5b00bb6115287c7a"]}]
+$ cat ... | jl 'map $ \o -> { sha: o.sha, ps: map _.sha o.parents }'
+[{"sha":"7b81a836c31500e685d043729259affa8b670a87","ps":["c538237f4e4c381d35f1c15497c...
 ```
 
 ## Core syntax
@@ -38,49 +36,10 @@ Arrays:
 
     [1, 4 * 5, id 5]
 
-## Library of functions
-
-Obtain this list via `--browse`:
-
-``` haskell
-* :: Value → Value → Value
-+ :: Value → Value → Value
-- :: Value → Value → Value
-/ :: Value → Value → Value
-/= :: Value → Value → Value
-< :: Value → Value → Value
-<= :: Value → Value → Value
-= :: Value → Value → Value
-> :: Value → Value → Value
->= :: Value → Value → Value
-compose :: (Value → Value) → (Value → Value) → Value → Value
-concat :: Value → Value
-drop :: Value → Value → Value
-dropWhile :: (Value → Value) → Value → Value
-elem :: Value → Value → Value
-empty :: Value → Value
-filter :: (Value → Value) → Value → Value
-flip :: (Value → Value → Value) → Value → Value → Value
-fold :: (Value → Value → Value) → Value → Value → Value
-get :: Value → Value → Value
-id :: Value → Value
-length :: Value → Value
-map :: (Value → Value) → Value → Value
-modify :: Value → (Value → Value) → Value → Value
-reverse :: Value → Value
-set :: Value → Value → Value → Value
-take :: Value → Value → Value
-takeWhile :: (Value → Value) → Value → Value
-zipWith :: (Value → Value → Value) → Value → Value → Value
-```
-
-## Syntactic sugar
-
 Short-hand for fields:
 
     o.f  is sugar for         get "f" o
     _.f  is sugar for  (\o -> get "f" o)
-     .f  is sugar for             "f"
 
 For arrays:
 
@@ -90,29 +49,60 @@ Function composition:
 
     a | b | c is sugar for `\x -> c (b (a x)`
 
-## jq comparison
+## Mini tutorial
+
+You do everything with usual functional programming functions.
+
+Returning the same thing, aka identity. That's normal in functional
+programming:
 
 ``` haskell
-jq '.'
 jl 'id'
 ```
 
+Taking the first element of something, using syntax that looks like
+regular array access. The `_` is a short-hand so that you don't need a
+lambda:
+
 ``` haskell
-jq '.[0]'
 jl '_[0]'
 ```
 
-``` haskell
-jq '[.[0] | {message: .commit.message, name: .commit.committer.name}]'
-jl '_[0] | \o -> {message: o.commit.message, name: o.commit.committer.name}'
-```
+Taking the first element and then creating a record of some parts of it:
 
 ``` haskell
-jq '[.[] | {message: .commit.message, name: .commit.committer.name}]'
-jl 'map $ \o -> {message: o.commit.message, name: o.commit.committer.name}'
+jl '_[0] | \o -> {msg: o.commit.message, n: o.commit.committer.name}'
 ```
 
+Note the use of `|` to compose functions. Just like in the shell.
+
+Applying a function to all elements in an array:
+
 ``` haskell
-jq '[.[] | {message: .commit.message, name: .commit.committer.name, parents: [.parents[].html_url]}]'
-jl '_[0] | \o -> {message: o.commit.message, name: o.commit.committer.name, parents: map _.html_url o.parents }'
+jl 'map _.commit.committer.name'
+```
+
+Note how you can nest property access easily.
+
+Applying something more detailed, by constructing a record of our own
+
+``` haskell
+jl 'map $ \o -> {msg: o.commit.message, n: o.commit.committer.name}'
+```
+
+You can use `$` to avoid using parentheses on the right. That's a
+trick from Haskell.
+
+Applying functions to nested data structures:
+
+``` haskell
+jl '_[0] | \o -> {msg: o.commit.message, n: o.commit.committer.name, ps: map _.html_url o.parents }'
+```
+
+Notice the `ps` property comes by taking the `html_url` of all the parents.
+
+Filtering is easy, simply write a function that returns true:
+
+``` haskell
+$ cat .. | jl 'map (\o -> { sha: o.sha, ps: map _.sha o.parents }) | filter (\o -> length o.ps > 1)'
 ```
