@@ -111,7 +111,7 @@ arrays =
                                         x))
                                 nil
                                 xs')
-                           _ -> error "can only zip two arrays")))
+                           _ -> error "can only fold arrays")))
         , (FunctionType (FunctionType ValueType (FunctionType ValueType ValueType))
                         (FunctionType ValueType (FunctionType ValueType ValueType)))))
     zipw =
