@@ -8,10 +8,12 @@
 module JL.Parser where
 
 import           Control.Monad.Catch
+import           Data.Functor
 import qualified Data.HashMap.Strict as HM
 import           Data.Monoid
 import           Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Vector as V
 import           JL.Tokenizer
 import           JL.Types
 import           Text.Parsec hiding (satisfy, anyToken)
@@ -52,7 +54,12 @@ expressionParser = pipes
         [] -> unexpected "empty expression"
       where
         dollarable =
-          record <|> lambda <|> ifParser <|> infix' <|> app <|> atomic
+          array <|> record <|> lambda <|> ifParser <|> infix' <|> app <|> atomic
+    array = do
+      void (equalToken OpenBracket) <?> ("open bracket " <> curlyQuotes "[")
+      es <- sepBy expressionParser (void (equalToken Comma))
+      void (equalToken CloseBracket) <?> ("closing bracket " <> curlyQuotes "]")
+      pure (ArrayExpression (V.fromList es))
     record = do
       _ <- equalToken OpenBrace
       pairs' <- sepBy pair (equalToken Comma <?> curlyQuotes ",")
@@ -130,19 +137,18 @@ expressionParser = pipes
                         fst
                         (consumeToken
                            (\case
-                              VariableToken i ->
-                                Just i
+                              VariableToken i -> Just i
                               _ -> Nothing))
                     collectsubscripts (ks . (PropertySubscript k :)) a
                   else pure (ks [], a)
       a <- varParser <|> parensExpr
       (subscripts, b) <- collectsubscripts id a
       pure
-        (SubscriptExpression (case b of
-                                VariableExpression (Variable "_") ->
-                                  WildcardSubscripted
-                                _ -> ExpressionSubscripted a)
-                             subscripts)
+        (SubscriptExpression
+           (case b of
+              VariableExpression (Variable "_") -> WildcardSubscripted
+              _ -> ExpressionSubscripted a)
+           subscripts)
     unambiguous = funcOp <|> record <|> atomic
     parensExpr = parens expressionParser
 

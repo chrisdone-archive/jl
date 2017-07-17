@@ -31,6 +31,8 @@ eval (IfCore c a b) =
     _ -> error ("type error for if condition, should be bool")
 eval (RecordCore hms) =
   RecordCore (fmap eval hms)
+eval (ArrayCore hms) =
+  ArrayCore (fmap eval hms)
 eval e = e
 
 -- | Substitute name in function body.
@@ -45,6 +47,7 @@ subst name val (ApplicationCore f a) =
 subst name val (IfCore f a b) =
   IfCore (subst name val f) (subst name val a) (subst name val b)
 subst name val (RecordCore hm) = RecordCore (fmap (subst name val) hm)
+subst name val (ArrayCore hm) = ArrayCore (fmap (subst name val) hm)
 subst _ _ e = e
 
 -- | Remove syntactic sugar and convert into executable form.
