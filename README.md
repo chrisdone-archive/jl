@@ -1,6 +1,6 @@
 # jl
 
-JSON Lambda is a tiny functional language for querying and
+jl ("JSON lambda") is a tiny functional language for querying and
 manipulating JSON.
 
 Example:
