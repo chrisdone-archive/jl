@@ -34,6 +34,10 @@ Objects:
 
     {foo: 123, bar: 34.3, "a:b": "hi"}
 
+Arrays:
+
+    [1, 4 * 5, id 5]
+
 ## Library of functions
 
 Obtain this list via `--browse`:
