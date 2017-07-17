@@ -182,7 +182,7 @@ arrays =
                 case xs of
                   (ArrayCore xs') ->
                     (ArrayCore (V.concat (map coreToArray (V.toList xs'))))
-                  _ -> error "can only take length of arrays"))
+                  _ -> error "can only concat arrays"))
         , FunctionType ValueType ValueType))
     rev =
       ( Variable "reverse"
