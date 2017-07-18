@@ -11,12 +11,12 @@ import           Data.Aeson (Value)
 import qualified Data.HashMap.Strict as HM
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
+import           Data.Maybe
 import           Data.Scientific
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Vector as V
 import           JL.Interpreter
-import           JL.Printer
 import           JL.Serializer
 import           JL.Types
 
@@ -205,7 +205,17 @@ foldf =
                                  (ApplicationCore (ApplicationCore cons acc) x))
                             nil
                             xs')
-                       _ -> error "can only fold arrays")))
+                       ConstantCore (StringConstant xs') ->
+                         (T.foldl
+                            (\acc x ->
+                               eval
+                                 (ApplicationCore
+                                    (ApplicationCore cons acc)
+                                    (ConstantCore
+                                       (StringConstant (T.singleton x)))))
+                            nil
+                            xs')
+                       _ -> error "can only fold sequences")))
   , definitionType =
       (FunctionType
          ((FunctionType ValueType (FunctionType ValueType ValueType)))
@@ -254,12 +264,20 @@ elemf =
                     (ConstantCore
                        (BoolConstant
                           (V.elem (coreToValue n) (fmap coreToValue xs'))))
+                  (ConstantCore (StringConstant xs')) ->
+                    (ConstantCore
+                       (BoolConstant
+                          (isJust
+                             (T.findIndex
+                                (\cc ->
+                                   case n of
+                                     ConstantCore (StringConstant c) ->
+                                       c == T.singleton cc
+                                     _ -> False)
+                                xs'))))
                   _ ->
                     error
-                      ("can only check elements from arrays, args: " <>
-                       T.unpack (prettyCore n) <>
-                       " " <>
-                       T.unpack (prettyCore xs))))
+                      "can only check elements from sequences"))
   , definitionType = FunctionType ValueType (FunctionType ValueType ValueType)
   }
 
@@ -276,7 +294,9 @@ takef =
                 case (n, xs) of
                   (ConstantCore (NumberConstant n'), ArrayCore xs') ->
                     (ArrayCore (V.take (round n') xs'))
-                  _ -> error "can only take from arrays"))
+                  (ConstantCore (NumberConstant n'), ConstantCore (StringConstant xs')) ->
+                    (ConstantCore (StringConstant (T.take (round n') xs')))
+                  _ -> error "can only take from sequences"))
   , definitionType = FunctionType ValueType (FunctionType ValueType ValueType)
   }
 
@@ -291,9 +311,11 @@ dropf =
            EvalCore
              (\xs ->
                 case (n, xs) of
+                  (ConstantCore (NumberConstant n'), ConstantCore (StringConstant xs')) ->
+                    (ConstantCore (StringConstant (T.drop (round n') xs')))
                   (ConstantCore (NumberConstant n'), ArrayCore xs') ->
                     (ArrayCore (V.drop (round n') xs'))
-                  _ -> error "can only drop from arrays"))
+                  _ -> error "can only drop from sequences"))
   , definitionType = FunctionType ValueType (FunctionType ValueType ValueType)
   }
 
@@ -322,7 +344,9 @@ rev =
          (\xs ->
             case xs of
               (ArrayCore xs') -> (ArrayCore (V.reverse xs'))
-              _ -> error "can only reverse an array or a string"))
+              (ConstantCore (StringConstant xs')) ->
+                (ConstantCore (StringConstant (T.reverse xs')))
+              _ -> error "can only reverse a sequence"))
   , definitionType = FunctionType ValueType ValueType
   }
 
@@ -337,7 +361,9 @@ len =
             case xs of
               (ArrayCore xs') ->
                 (ConstantCore (NumberConstant (fromIntegral (V.length xs'))))
-              _ -> error "can only take length of arrays"))
+              (ConstantCore (StringConstant xs')) ->
+                (ConstantCore (NumberConstant (fromIntegral (T.length xs'))))
+              _ -> error "can only take length of sequences"))
   , definitionType = FunctionType ValueType ValueType
   }
 
@@ -351,7 +377,9 @@ empty =
          (\xs ->
             case xs of
               (ArrayCore xs') -> (ConstantCore (BoolConstant (V.null xs')))
-              _ -> error "can only check if arrays are empty"))
+              (ConstantCore (StringConstant xs')) ->
+                (ConstantCore (BoolConstant (T.null xs')))
+              _ -> error "can only check if sequences are empty"))
   , definitionType = FunctionType ValueType ValueType
   }
 
@@ -374,7 +402,20 @@ dropWhilef =
                                ConstantCore (BoolConstant b) -> b
                                _ -> True)
                           xs'))
-                  _ -> error "can only dropWhile over arrays"))
+                  (ConstantCore (StringConstant xs')) ->
+                    (ConstantCore
+                       (StringConstant
+                          (T.dropWhile
+                             (\x ->
+                                case eval
+                                       (ApplicationCore
+                                          f
+                                          (ConstantCore
+                                             (StringConstant (T.singleton x)))) of
+                                  ConstantCore (BoolConstant b) -> b
+                                  _ -> True)
+                             xs')))
+                  _ -> error "can only dropWhile over sequences"))
   , definitionType =
       FunctionType
         (FunctionType ValueType ValueType)
@@ -384,7 +425,8 @@ dropWhilef =
 takeWhilef :: Definition
 takeWhilef =
   Definition
-  { definitionDoc = "Take elements from a sequence while given predicate is true"
+  { definitionDoc =
+      "Take elements from a sequence while given predicate is true"
   , definitionName = Variable "takeWhile"
   , definitionCore =
       (EvalCore
@@ -392,6 +434,19 @@ takeWhilef =
             EvalCore
               (\xs ->
                  case xs of
+                   (ConstantCore (StringConstant xs')) ->
+                     (ConstantCore
+                        (StringConstant
+                           (T.takeWhile
+                              (\x ->
+                                 case eval
+                                        (ApplicationCore
+                                           f
+                                           (ConstantCore
+                                              (StringConstant (T.singleton x)))) of
+                                   ConstantCore (BoolConstant b) -> b
+                                   _ -> True)
+                              xs')))
                    (ArrayCore xs') ->
                      (ArrayCore
                         (V.takeWhile
@@ -400,7 +455,7 @@ takeWhilef =
                                 ConstantCore (BoolConstant b) -> b
                                 _ -> True)
                            xs'))
-                   _ -> error "can only takeWhile over arrays")))
+                   _ -> error "can only takeWhile over sequences")))
   , definitionType =
       FunctionType
         (FunctionType ValueType ValueType)
@@ -418,6 +473,19 @@ filterf =
            EvalCore
              (\xs ->
                 case xs of
+                  (ConstantCore (StringConstant xs')) ->
+                    (ConstantCore
+                       (StringConstant
+                          (T.filter
+                             (\x ->
+                                case eval
+                                       (ApplicationCore
+                                          f
+                                          (ConstantCore
+                                             (StringConstant (T.singleton x)))) of
+                                  ConstantCore (BoolConstant b) -> b
+                                  _ -> True)
+                             xs')))
                   (ArrayCore xs') ->
                     (ArrayCore
                        (V.filter
@@ -426,7 +494,7 @@ filterf =
                                ConstantCore (BoolConstant b) -> b
                                _ -> True)
                           xs'))
-                  _ -> error "can only filter over arrays"))
+                  _ -> error "can only filter over sequences"))
   , definitionType =
       FunctionType
         (FunctionType ValueType ValueType)
@@ -444,9 +512,22 @@ mapf =
            EvalCore
              (\xs ->
                 case xs of
+                  (ConstantCore (StringConstant xs')) ->
+                    (ConstantCore
+                       (StringConstant
+                          (T.concatMap
+                             (\x ->
+                                case eval
+                                       (ApplicationCore
+                                          f
+                                          (ConstantCore
+                                             (StringConstant (T.singleton x)))) of
+                                  ConstantCore (StringConstant b) -> b
+                                  _ -> error "map over a string must return strings")
+                             xs')))
                   (ArrayCore xs') ->
                     (ArrayCore (fmap (\x -> (eval (ApplicationCore f (x)))) xs'))
-                  _ -> error "can only map over arrays"))
+                  _ -> error "can only map over sequences"))
   , definitionType =
       FunctionType
         (FunctionType ValueType ValueType)
