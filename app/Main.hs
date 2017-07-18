@@ -22,12 +22,12 @@ import           Options.Applicative.Simple
 
 main :: IO ()
 main = do
-  do ((inp, aslines, browse), ()) <-
+  do ((inp, aslines, browse, markdown), ()) <-
        simpleOptions
          "0.0.0"
          "jl - JSON Lambda calculus"
          "Command-line language for querying and outputting JSON."
-         ((,,) <$> strArgument (metavar "CODE") <*>
+         ((,,,) <$> strArgument (metavar "CODE") <*>
           flag
             False
             True
@@ -37,12 +37,36 @@ main = do
           flag
             False
             True
-            (long "browse" <> help "Prints out all available functions"))
+            (long "browse" <> help "Prints out all available functions") <*>
+          flag
+            False
+            True
+            (long "browse-markdown" <>
+             help "Prints out all available functions, in markdown format"))
          empty
-     if browse
+     let block xs = if markdown
+                       then "```haskell\n" <> xs <> "\n```"
+                       else xs
+     if browse  || markdown
        then mapM_
-              (\((Variable name), (_, ty)) -> T.putStrLn (name <> " :: " <> prettyType ty))
-              (M.toList bindings)
+              (\(groupname, defs) ->
+                 T.putStrLn
+                   (((if markdown
+                         then "## "
+                         else "")<> groupname) <> "\n\n" <>
+                    T.unlines
+                      (map
+                         (\def ->
+                            (let Variable v = definitionName def
+                             in block (v <> " :: " <> prettyType (definitionType def)) <>
+                                "\n\n" <>
+                                (if not markdown
+                                    then "  "
+                                    else "") <>
+                                definitionDoc def <>
+                                "\n"))
+                         defs)))
+              functions
        else case parseText "" (T.pack inp) of
               Left err -> error (show err)
               Right expr0 -> do
@@ -57,9 +81,9 @@ main = do
                               !_ ->
                                 case eval
                                        (foldl
-                                          (\e (v, (f, _)) -> subst v f e)
+                                          (\e (v, f) -> subst v f e)
                                           (desugar expr)
-                                          (M.toList bindings)) of
+                                          (M.toList scope)) of
                                   v ->
                                     if aslines
                                       then L.intercalate

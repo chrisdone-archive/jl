@@ -32,5 +32,5 @@ repl inp js =
              prettyType (infer context expr (map TypeVariable [1 ..])))
           T.putStrLn
             (prettyCore
-               (eval (foldl (\e (v, (f, _)) -> subst v f e) (desugar expr) (M.toList bindings))))
+               (eval (foldl (\e (v, f) -> subst v f e) (desugar expr) (M.toList scope))))
           where expr = ApplicationExpression expr0 (valueToExpression j)

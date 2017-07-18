@@ -112,3 +112,10 @@ data Location = Location
   , locationEndLine :: !Int
   , locationEndColumn :: !Int
   } deriving (Show, Eq)
+
+data Definition = Definition
+  { definitionName :: Variable
+  , definitionDoc :: Text
+  , definitionType :: Type
+  , definitionCore :: Core
+  }

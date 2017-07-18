@@ -109,34 +109,193 @@ jl 'map (\o -> { sha: o.sha, ps: map _.sha o.parents }) | filter (\o -> length o
 
 # Available functions
 
-``` haskell
+## Arithmetic operators
+
+```haskell
 * :: Value → Value → Value
+```
+
+a * b
+
+```haskell
 + :: Value → Value → Value
+```
+
+a + b
+
+```haskell
 - :: Value → Value → Value
+```
+
+a - b
+
+```haskell
 / :: Value → Value → Value
+```
+
+a / b
+
+
+## Predicate operators
+
+```haskell
 /= :: Value → Value → Value
-< :: Value → Value → Value
-<= :: Value → Value → Value
+```
+
+a /= b
+
+```haskell
 = :: Value → Value → Value
+```
+
+a = b
+
+
+## Numeric predicate operators
+
+```haskell
 > :: Value → Value → Value
+```
+
+a > b
+
+```haskell
+< :: Value → Value → Value
+```
+
+a < b
+
+```haskell
 >= :: Value → Value → Value
-compose :: (Value → Value) → (Value → Value) → Value → Value
-concat :: Value → Value
-drop :: Value → Value → Value
-dropWhile :: (Value → Value) → Value → Value
-elem :: Value → Value → Value
-empty :: Value → Value
-filter :: (Value → Value) → Value → Value
-flip :: (Value → Value → Value) → Value → Value → Value
-fold :: (Value → Value → Value) → Value → Value → Value
-get :: Value → Value → Value
+```
+
+a >= b
+
+```haskell
+<= :: Value → Value → Value
+```
+
+a <= b
+
+
+## Function combinators
+
+```haskell
 id :: Value → Value
-length :: Value → Value
-map :: (Value → Value) → Value → Value
-modify :: Value → (Value → Value) → Value → Value
-reverse :: Value → Value
+```
+
+Identity function, returns its input unchanged
+
+```haskell
+compose :: (Value → Value) → (Value → Value) → Value → Value
+```
+
+Compose two functions
+
+```haskell
+flip :: (Value → Value → Value) → Value → Value → Value
+```
+
+Flips the argument order of a function of two or more arguments
+
+
+## Record access
+
+```haskell
+get :: Value → Value → Value
+```
+
+Get the value at k from the object
+
+```haskell
 set :: Value → Value → Value → Value
-take :: Value → Value → Value
+```
+
+Set the value k to v in object
+
+```haskell
+modify :: Value → (Value → Value) → Value → Value
+```
+
+Modify the object at k with function f
+
+
+## Sequences
+
+```haskell
+map :: (Value → Value) → Value → Value
+```
+
+Apply a function to every element in the sequence
+
+```haskell
+filter :: (Value → Value) → Value → Value
+```
+
+Keep only items from the sequence for which p returns true
+
+```haskell
 takeWhile :: (Value → Value) → Value → Value
+```
+
+Take elements from a sequence while given predicate is true
+
+```haskell
+empty :: Value → Value
+```
+
+Is a sequence empty?
+
+```haskell
+length :: Value → Value
+```
+
+Get the length of a sequence
+
+```haskell
+reverse :: Value → Value
+```
+
+Reverse a sequence
+
+```haskell
+drop :: Value → Value → Value
+```
+
+Drop n items from the sequence
+
+```haskell
+elem :: Value → Value → Value
+```
+
+Is x an element of y?
+
+```haskell
+concat :: Value → Value
+```
+
+Concatenate a list of sequences into one sequence
+
+```haskell
 zipWith :: (Value → Value → Value) → Value → Value → Value
 ```
+
+Zip two lists calling with each element to f x y
+
+```haskell
+take :: Value → Value → Value
+```
+
+Take n items from sequence
+
+```haskell
+fold :: (Value → Value) → Value → Value → Value
+```
+
+Fold over a structure with a state.
+
+```haskell
+dropWhile :: (Value → Value) → Value → Value
+```
+
+Drop elements from a sequence while a predicate is true
