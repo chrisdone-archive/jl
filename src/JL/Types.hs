@@ -27,7 +27,7 @@ data Type
 -- | A parsed expression.
 data Expression
   = VariableExpression Variable
-  | LambdaExpression Variable Type Expression
+  | LambdaExpression Variable Expression
   | ApplicationExpression Expression Expression
   | InfixExpression Expression Variable Expression
   | IfExpression Expression Expression Expression

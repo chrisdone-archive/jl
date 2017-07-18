@@ -38,7 +38,9 @@ check ctx expr =
       case M.lookup name ctx of
         Nothing -> error ("Not in scope: `" <> T.unpack text <> "'")
         Just typ -> return (typ, mempty)
-    LambdaExpression x xty body -> do
+    LambdaExpression x body -> do
+      sym <- generateTypeVariable
+      let xty = VariableType sym
       (rty, cs) <- check (M.insert x xty ctx) body
       return (FunctionType xty rty, cs)
     ConstantExpression {} -> return (ValueType, mempty)

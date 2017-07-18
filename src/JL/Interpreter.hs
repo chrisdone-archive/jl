@@ -57,7 +57,7 @@ desugar =
     (InfixExpression a f b) ->
       ApplicationCore (ApplicationCore (VariableCore f) (desugar a)) (desugar b)
     VariableExpression v -> VariableCore v
-    LambdaExpression v _ e -> LambdaCore v (desugar e)
+    LambdaExpression v e -> LambdaCore v (desugar e)
     ApplicationExpression f a -> ApplicationCore (desugar f) (desugar a)
     IfExpression a b c -> IfCore (desugar a) (desugar b) (desugar c)
     RecordExpression pars -> RecordCore (fmap desugar pars)

@@ -51,7 +51,7 @@ prettyExp = go
     go t =
       case t of
         VariableExpression (Variable name) -> name
-        LambdaExpression (Variable n) _ty e ->
+        LambdaExpression (Variable n) e ->
           "(\\" <> n <> " -> " <> go e <> ")"
         ApplicationExpression f x -> "(" <> go f <> " (" <> go x <> "))"
         InfixExpression l o r ->

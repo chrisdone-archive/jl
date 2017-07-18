@@ -246,7 +246,7 @@ lambda = do
   args <- many1 funcParam <?> "lambda parameters"
   _ <- equalToken RightArrow
   e <- expressionParser
-  pure (foldl (\e' arg -> LambdaExpression arg (VariableType(TypeVariable 0)) e') e (reverse args))
+  pure (foldl (\e' arg -> LambdaExpression arg e') e (reverse args))
 
 funcParam :: TokenParser Variable
 funcParam = go <?> "function parameter (e.g. ‘x’, ‘limit’, etc.)"
