@@ -289,7 +289,7 @@ take :: Value → Value → Value
 Take n items from sequence
 
 ```haskell
-fold :: (Value → Value) → Value → Value → Value
+fold :: (Value → Value → Value) → Value → Value → Value
 ```
 
 Fold over a structure with a state.

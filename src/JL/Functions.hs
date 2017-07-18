@@ -208,7 +208,7 @@ foldf =
                        _ -> error "can only fold arrays")))
   , definitionType =
       (FunctionType
-         (FunctionType ValueType ValueType)
+         ((FunctionType ValueType (FunctionType ValueType ValueType)))
          (FunctionType ValueType (FunctionType ValueType ValueType)))
   }
 
