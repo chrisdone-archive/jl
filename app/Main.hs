@@ -7,17 +7,16 @@ module Main where
 import           Control.Monad.Writer
 import           Data.Aeson
 import qualified Data.ByteString.Lazy as L
-import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
-import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Vector as V
-import           JL
+import           JL.Functions
 import           JL.Inferer
 import           JL.Interpreter
 import           JL.Parser
 import           JL.Printer
+import           JL.Serializer
 import           JL.Types
 import           Options.Applicative.Simple
 

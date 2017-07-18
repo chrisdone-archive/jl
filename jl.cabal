@@ -21,9 +21,11 @@ library
     JL.Parser
     JL.Tokenizer
     JL.Types
-        JL.Inferer
-        JL.Interpreter
-        JL.Printer
+    JL.Inferer
+    JL.Interpreter
+    JL.Printer
+    JL.Functions
+    JL.Serializer
   build-depends:       base >= 4.7 && < 5, attoparsec, mtl, text, containers, aeson, bytestring, vector, parsec, exceptions, text, containers, text, unordered-containers, scientific
   default-language:    Haskell2010
 
