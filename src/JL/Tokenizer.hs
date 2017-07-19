@@ -54,9 +54,10 @@ tokenTokenizer prespaces =
     , atom CloseBrace "}"
     , atom OpenBracket "["
     , atom CloseBracket "]"
-    , atom Bar "|"
+
     , atom Dollar "$"
     , atom Comma ","
+
     , do tok <-
            parsing
              Operator
@@ -72,6 +73,8 @@ tokenTokenizer prespaces =
                    , string "<"
                    , string "/"
                    , string "="
+                   , string "&&"
+                   , try (string "||")
                    ]))
              "operator (e.g. *, <, +, =, etc.)"
          when
@@ -81,6 +84,7 @@ tokenTokenizer prespaces =
                ", there should be spaces before and after operators."))
          lookAhead spaces1 <?> ("space after " ++ tokenString tok)
          pure tok
+         , atom Bar "|"
     , parsing
         StringToken
         (do _ <- string "\""

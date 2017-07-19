@@ -57,6 +57,8 @@ functions =
       ])
   , ( "Predicate operators"
     , [predicateOperator "/=" (/=), predicateOperator "=" (==)])
+  , ( "Boolean operators"
+    , [boolOperator "&&" (&&), boolOperator "||" (||), boolFun "not" not])
   , ( "Numeric operators"
     , [ numericPredicateOperator ">" (>)
       , numericPredicateOperator "<" (<)
@@ -632,6 +634,23 @@ arithmeticOperator name f =
   , definitionDoc = "a " <> name <> " b"
   }
 
+boolOperator :: Text -> (Bool -> Bool -> Bool) -> Definition
+boolOperator name f =
+  Definition
+  { definitionName = Variable name
+  , definitionCore =
+      EvalCore
+        (\x ->
+           EvalCore
+             (\y ->
+                case (x, y) of
+                  (ConstantCore (BoolConstant a), ConstantCore (BoolConstant b)) ->
+                    ConstantCore (BoolConstant (f a b))
+                  _ -> error ("type error for arguments to " <> show name)))
+  , definitionType = ValueType .-> ValueType .-> ValueType
+  , definitionDoc = "a " <> name <> " b"
+  }
+
 arithmeticFun :: Text -> (Scientific -> Scientific) -> Definition
 arithmeticFun name f =
   Definition
@@ -642,6 +661,21 @@ arithmeticFun name f =
            case (x) of
              (ConstantCore (NumberConstant a)) ->
                ConstantCore (NumberConstant (f a))
+             _ -> error ("type error for arguments to " <> show name))
+  , definitionType = ValueType .-> ValueType
+  , definitionDoc = name <> " b"
+  }
+
+boolFun :: Text -> (Bool -> Bool) -> Definition
+boolFun name f =
+  Definition
+  { definitionName = Variable name
+  , definitionCore =
+      EvalCore
+        (\x ->
+           case (x) of
+             (ConstantCore (BoolConstant a)) ->
+               ConstantCore (BoolConstant (f a))
              _ -> error ("type error for arguments to " <> show name))
   , definitionType = ValueType .-> ValueType
   , definitionDoc = name <> " b"

@@ -242,7 +242,67 @@ sort :: Value → Value
 Return the sequence sorted
 
 
-## Arithmetic operators
+## Predicate operators
+
+```haskell
+/= :: Value → Value → Value
+```
+
+a /= b
+
+```haskell
+= :: Value → Value → Value
+```
+
+a = b
+
+
+## Boolean operators
+
+```haskell
+&& :: Value → Value → Value
+```
+
+a && b
+
+```haskell
+|| :: Value → Value → Value
+```
+
+a || b
+
+```haskell
+not :: Value → Value
+```
+
+not b
+
+
+## Numeric operators
+
+```haskell
+> :: Value → Value → Value
+```
+
+a > b
+
+```haskell
+< :: Value → Value → Value
+```
+
+a < b
+
+```haskell
+>= :: Value → Value → Value
+```
+
+a >= b
+
+```haskell
+<= :: Value → Value → Value
+```
+
+a <= b
 
 ```haskell
 * :: Value → Value → Value
@@ -268,47 +328,23 @@ a - b
 
 a / b
 
-
-## Predicate operators
-
 ```haskell
-/= :: Value → Value → Value
+min :: Value → Value → Value
 ```
 
-a /= b
+a min b
 
 ```haskell
-= :: Value → Value → Value
+max :: Value → Value → Value
 ```
 
-a = b
-
-
-## Numeric predicate operators
+a max b
 
 ```haskell
-> :: Value → Value → Value
+abs :: Value → Value
 ```
 
-a > b
-
-```haskell
-< :: Value → Value → Value
-```
-
-a < b
-
-```haskell
->= :: Value → Value → Value
-```
-
-a >= b
-
-```haskell
-<= :: Value → Value → Value
-```
-
-a <= b
+abs b
 
 
 ## Function combinators
