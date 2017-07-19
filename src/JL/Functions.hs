@@ -53,21 +53,22 @@ functions =
       , foldf
       , dropWhilef
       , nubf
-      ,  sortf
-      ])
-  , ( "Arithmetic operators"
-    , [ arithmeticOperator "*" (*)
-      , arithmeticOperator "+" (+)
-      , arithmeticOperator "-" (-)
-      , arithmeticOperator "/" (/)
+      , sortf
       ])
   , ( "Predicate operators"
     , [predicateOperator "/=" (/=), predicateOperator "=" (==)])
-  , ( "Numeric predicate operators"
+  , ( "Numeric operators"
     , [ numericPredicateOperator ">" (>)
       , numericPredicateOperator "<" (<)
       , numericPredicateOperator ">=" (>=)
       , numericPredicateOperator "<=" (<=)
+      , arithmeticOperator "*" (*)
+      , arithmeticOperator "+" (+)
+      , arithmeticOperator "-" (-)
+      , arithmeticOperator "/" (/)
+      , arithmeticOperator "min" min
+      , arithmeticOperator "max" max
+      , arithmeticFun "abs" abs
       ])
   , ("Function combinators", [idf, compose, flipf])
   ]
@@ -629,6 +630,21 @@ arithmeticOperator name f =
                   _ -> error ("type error for arguments to " <> show name)))
   , definitionType = ValueType .-> ValueType .-> ValueType
   , definitionDoc = "a " <> name <> " b"
+  }
+
+arithmeticFun :: Text -> (Scientific -> Scientific) -> Definition
+arithmeticFun name f =
+  Definition
+  { definitionName = Variable name
+  , definitionCore =
+      EvalCore
+        (\x ->
+           case (x) of
+             (ConstantCore (NumberConstant a)) ->
+               ConstantCore (NumberConstant (f a))
+             _ -> error ("type error for arguments to " <> show name))
+  , definitionType = ValueType .-> ValueType
+  , definitionDoc = name <> " b"
   }
 
 predicateOperator :: Text -> (Value -> Value -> Bool) -> Definition
