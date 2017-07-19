@@ -86,7 +86,7 @@ keysf =
                 ArrayCore
                   (V.fromList (map (ConstantCore . StringConstant) (HM.keys o)))
               _ -> error "keys function expected an object"))
-  , definitionType = FunctionType ValueType (FunctionType ValueType ValueType)
+  , definitionType = FunctionType ValueType ValueType
   }
 
 elemsf :: Definition
@@ -102,7 +102,7 @@ elemsf =
                 ArrayCore
                   (V.fromList (HM.elems o))
               _ -> error "elems function expected an object"))
-  , definitionType = FunctionType ValueType (FunctionType ValueType ValueType)
+  , definitionType = FunctionType ValueType ValueType
   }
 
 modifyf :: Definition
