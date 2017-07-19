@@ -28,7 +28,11 @@ main = do
          "0.0.0"
          "jl - JSON Lambda calculus"
          "Command-line language for querying and outputting JSON."
-         ((,,,,) <$> strArgument (metavar "CODE") <*>
+         ((,,,,) <$>
+          strArgument
+            (metavar "CODE" <>
+             help "JL code; supports completion of function names" <>
+             completeWith (map (\(Variable v) -> T.unpack v) (M.keys context))) <*>
           optional (strArgument (metavar "FILE")) <*>
           flag
             False
