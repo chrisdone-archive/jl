@@ -68,6 +68,13 @@ lambda:
 jl '_[0]'
 ```
 
+If you want to get what keys are available, you can run:
+
+``` haskell
+jl 'map keys | _[0]'
+["sha","committer","url","comments_url","parents","author","html_url","commit"]
+```
+
 Taking the first element and then creating a record of some parts of it:
 
 ``` haskell

@@ -8,7 +8,9 @@ module JL.Functions (context, scope, functions) where
 import           Control.Arrow
 import           Control.Monad.Writer
 import           Data.Aeson (Value)
+import           Data.Function
 import qualified Data.HashMap.Strict as HM
+import           Data.List
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import           Data.Maybe
@@ -49,7 +51,7 @@ functions =
       , numericPredicateOperator "<=" (<=)
       ])
   , ("Function combinators", [idf, compose, flipf])
-  , ("Record access", [getf, setf, modifyf])
+  , ("Record access", [getf, setf, modifyf, keysf, elemsf])
   , ( "Sequences"
     , [ mapf
       , filterf
@@ -64,11 +66,44 @@ functions =
       , takef
       , foldf
       , dropWhilef
+      , nubf
       ])
   ]
 
 --------------------------------------------------------------------------------
 -- Functions
+
+keysf :: Definition
+keysf =
+  Definition
+  { definitionDoc = "Get all keys of the object"
+  , definitionName = Variable "keys"
+  , definitionCore =
+      (EvalCore
+         (\obj ->
+            case obj of
+              RecordCore o ->
+                ArrayCore
+                  (V.fromList (map (ConstantCore . StringConstant) (HM.keys o)))
+              _ -> error "keys function expected an object"))
+  , definitionType = FunctionType ValueType (FunctionType ValueType ValueType)
+  }
+
+elemsf :: Definition
+elemsf =
+  Definition
+  { definitionDoc = "Get all elements of the object"
+  , definitionName = Variable "elems"
+  , definitionCore =
+      (EvalCore
+         (\obj ->
+            case obj of
+              RecordCore o ->
+                ArrayCore
+                  (V.fromList (HM.elems o))
+              _ -> error "elems function expected an object"))
+  , definitionType = FunctionType ValueType (FunctionType ValueType ValueType)
+  }
 
 modifyf :: Definition
 modifyf =
@@ -114,7 +149,7 @@ getf =
                      (case v V.!? (round i) of
                         Nothing -> error ("missing array index " <> show i)
                         Just v' -> v')
-                   _ -> error "type error for args")))
+                   _ -> error "type error for get arguments")))
   , definitionType = FunctionType ValueType (FunctionType ValueType ValueType)
   }
 
@@ -347,6 +382,26 @@ rev =
               (ConstantCore (StringConstant xs')) ->
                 (ConstantCore (StringConstant (T.reverse xs')))
               _ -> error "can only reverse a sequence"))
+  , definitionType = FunctionType ValueType ValueType
+  }
+
+nubf :: Definition
+nubf =
+  Definition
+  { definitionDoc = "Return the list with no duplicates; the nub of it"
+  , definitionName = Variable "nub"
+  , definitionCore =
+      (EvalCore
+         (\xs ->
+            case xs of
+              (ArrayCore xs') ->
+                (ArrayCore
+                   (V.fromList (nubBy (on (==) coreToValue) (V.toList xs'))))
+              (ConstantCore (StringConstant xs')) ->
+                (ConstantCore
+                   (StringConstant
+                      (T.pack (nub (T.unpack xs')))))
+              _ -> error "can only nub a sequence"))
   , definitionType = FunctionType ValueType ValueType
   }
 
