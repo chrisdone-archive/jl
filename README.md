@@ -6,7 +6,7 @@ manipulating JSON.
 Example:
 
 ``` haskell
-$ cat ... | jl 'map $ \o -> { sha: o.sha, ps: map _.sha o.parents }'
+$ jl 'map $ \o -> { sha: o.sha, ps: map _.sha o.parents }' x.json
 [{"sha":"7b81a836c31500e685d043729259affa8b670a87","ps":["c538237f4e4c381d35f1c15497c...
 ```
 
