@@ -80,7 +80,7 @@ main = do
                 case file of
                   Just fp -> do
                     bytes <- L.readFile fp
-                    L8.putStrLn (process expr0 aslines bytes)
+                    L8.putStr (process expr0 aslines bytes)
                   Nothing -> L.interact (process expr0 aslines)
   where
     process expr0 aslines =
