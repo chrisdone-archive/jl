@@ -14,6 +14,7 @@ import           Data.List
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import           Data.Maybe
+import           Data.Ord
 import           Data.Scientific
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -52,6 +53,7 @@ functions =
       , foldf
       , dropWhilef
       , nubf
+      ,  sortf
       ])
   , ( "Arithmetic operators"
     , [ arithmeticOperator "*" (*)
@@ -388,7 +390,7 @@ rev =
 nubf :: Definition
 nubf =
   Definition
-  { definitionDoc = "Return the list with no duplicates; the nub of it"
+  { definitionDoc = "Return the sequence with no duplicates; the nub of it"
   , definitionName = Variable "nub"
   , definitionCore =
       (EvalCore
@@ -402,6 +404,26 @@ nubf =
                    (StringConstant
                       (T.pack (nub (T.unpack xs')))))
               _ -> error "can only nub a sequence"))
+  , definitionType = FunctionType ValueType ValueType
+  }
+
+sortf :: Definition
+sortf =
+  Definition
+  { definitionDoc = "Return the sequence sorted"
+  , definitionName = Variable "sort"
+  , definitionCore =
+      (EvalCore
+         (\xs ->
+            case xs of
+              (ArrayCore xs') ->
+                (ArrayCore
+                   (V.fromList (sortBy (comparing coreToCompare) (V.toList xs'))))
+              (ConstantCore (StringConstant xs')) ->
+                (ConstantCore
+                   (StringConstant
+                      (T.pack (sort (T.unpack xs')))))
+              _ -> error "can only sort a sequence"))
   , definitionType = FunctionType ValueType ValueType
   }
 
