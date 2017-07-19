@@ -233,7 +233,13 @@ Drop elements from a sequence while a predicate is true
 nub :: Value → Value
 ```
 
-Return the list with no duplicates; the nub of it
+Return the sequence with no duplicates; the nub of it
+
+```haskell
+sort :: Value → Value
+```
+
+Return the sequence sorted
 
 
 ## Arithmetic operators
