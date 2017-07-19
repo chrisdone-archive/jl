@@ -36,22 +36,7 @@ scope = M.fromList (map (definitionName &&&definitionCore) (concatMap snd functi
 -- | All functions.
 functions :: [(Text, [Definition])]
 functions =
-  [ ( "Arithmetic operators"
-    , [ arithmeticOperator "*" (*)
-      , arithmeticOperator "+" (+)
-      , arithmeticOperator "-" (-)
-      , arithmeticOperator "/" (/)
-      ])
-  , ( "Predicate operators"
-    , [predicateOperator "/=" (/=), predicateOperator "=" (==)])
-  , ( "Numeric predicate operators"
-    , [ numericPredicateOperator ">" (>)
-      , numericPredicateOperator "<" (<)
-      , numericPredicateOperator ">=" (>=)
-      , numericPredicateOperator "<=" (<=)
-      ])
-  , ("Function combinators", [idf, compose, flipf])
-  , ("Record access", [getf, setf, modifyf, keysf, elemsf])
+  [ ("Record access", [getf, setf, modifyf, keysf, elemsf])
   , ( "Sequences"
     , [ mapf
       , filterf
@@ -68,6 +53,21 @@ functions =
       , dropWhilef
       , nubf
       ])
+  , ( "Arithmetic operators"
+    , [ arithmeticOperator "*" (*)
+      , arithmeticOperator "+" (+)
+      , arithmeticOperator "-" (-)
+      , arithmeticOperator "/" (/)
+      ])
+  , ( "Predicate operators"
+    , [predicateOperator "/=" (/=), predicateOperator "=" (==)])
+  , ( "Numeric predicate operators"
+    , [ numericPredicateOperator ">" (>)
+      , numericPredicateOperator "<" (<)
+      , numericPredicateOperator ">=" (>=)
+      , numericPredicateOperator "<=" (<=)
+      ])
+  , ("Function combinators", [idf, compose, flipf])
   ]
 
 --------------------------------------------------------------------------------
