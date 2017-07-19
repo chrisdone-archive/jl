@@ -143,12 +143,15 @@ expressionParser = pipes
                   else pure (ks [], a)
       a <- varParser <|> parensExpr
       (subscripts, b) <- collectsubscripts id a
-      pure
-        (SubscriptExpression
-           (case b of
-              VariableExpression (Variable "_") -> WildcardSubscripted
-              _ -> ExpressionSubscripted a)
-           subscripts)
+      if null subscripts
+         then case b of
+                VariableExpression (Variable "_") -> unexpected "wildcard without subscript"
+                _ -> pure a
+         else pure (SubscriptExpression
+                      (case b of
+                         VariableExpression (Variable "_") -> WildcardSubscripted
+                         _ -> ExpressionSubscripted b)
+                      subscripts)
     unambiguous = funcOp <|> record <|> atomic
     parensExpr = parens expressionParser
 

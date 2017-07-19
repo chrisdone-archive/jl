@@ -83,10 +83,10 @@ check ctx expr =
           (HM.toList pairs)
       pure (ValueType, cs)
     SubscriptExpression e ks -> do
-      (_, c1) <-
+      (t1, c1) <-
         (case e of
            ExpressionSubscripted es -> check ctx es
-           WildcardSubscripted -> pure (ValueType, mempty))
+           WildcardSubscripted -> pure (FunctionType ValueType ValueType, mempty))
       cs <-
         foldM
           (\cs s ->
@@ -97,9 +97,12 @@ check ctx expr =
                  pure (S.insert (pty, ValueType) (cs <> cs')))
           c1
           ks
-      sym <- generateTypeVariable
-      let rty = VariableType sym
-      pure (rty, cs)
+      let rty = case e of
+                  WildcardSubscripted -> FunctionType ValueType ValueType
+                  _ -> ValueType
+      pure
+        ( rty
+        , S.insert (t1, rty) cs)
     ArrayExpression as -> do
       cs <-
         foldM
