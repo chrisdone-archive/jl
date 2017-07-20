@@ -93,3 +93,4 @@ deploy:
   file_glob: true
   on:
     repo: chrisdone/jl
+    tags: true
