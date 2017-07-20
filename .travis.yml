@@ -27,13 +27,13 @@ cache:
 matrix:
   include:
 
-  - env: BUILD=stack ARGS="--resolver  lts-8.16"
-    compiler: ": Linux"
+  - env: BUILD=stack ARGS=""
+    compiler: "Linux"
     addons: {apt: {packages: [ghc-8.0.1], sources: [hvr-ghc]}}
 
   # Build on OS X in addition to Linux
   - env: BUILD=stack ARGS=""
-    compiler: ": OS X"
+    compiler: "OS X"
     os: osx
 
 before_install:
