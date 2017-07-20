@@ -57,8 +57,12 @@ functions =
       , nubf
       , sortf
       , appendf
-      ,  sumf, minimumf, maximumf
+      , sumf
+      , productf
+      , minimumf
+      , maximumf
       ])
+  , ("Strings", [wordsf, unwordsf, linesf, unlinesf])
   , ( "Predicate operators"
     , [predicateOperator "/=" (/=), predicateOperator "=" (==)])
   , ( "Boolean operators"
@@ -429,6 +433,72 @@ nubf =
                    (StringConstant
                       (T.pack (nub (T.unpack xs')))))
               _ -> error "can only nub a sequence"))
+  , definitionType = FunctionType JSONType JSONType
+  }
+
+linesf :: Definition
+linesf =
+  Definition
+  { definitionDoc = "Split the string into a list of lines"
+  , definitionName = Variable "lines"
+  , definitionCore =
+      (EvalCore
+         (\xs ->
+            case xs of
+              (ConstantCore (StringConstant xs')) ->
+                (ArrayCore
+                   (V.map
+                      (ConstantCore . StringConstant)
+                      ((V.fromList (T.lines xs')))))
+              _ -> error "can only lines a string"))
+  , definitionType = FunctionType JSONType JSONType
+  }
+
+wordsf :: Definition
+wordsf =
+  Definition
+  { definitionDoc = "Split the string into a list of words"
+  , definitionName = Variable "words"
+  , definitionCore =
+      (EvalCore
+         (\xs ->
+            case xs of
+              (ConstantCore (StringConstant xs')) ->
+                (ArrayCore
+                   (V.map
+                      (ConstantCore . StringConstant)
+                      ((V.fromList (T.words xs')))))
+              _ -> error "can only words a string"))
+  , definitionType = FunctionType JSONType JSONType
+  }
+
+unwordsf :: Definition
+unwordsf =
+  Definition
+  { definitionDoc = "Join the list of strings into a string separated by spaces"
+  , definitionName = Variable "unwords"
+  , definitionCore =
+      (EvalCore
+         (\xs ->
+            case xs of
+              (ArrayCore xs') ->
+                (ConstantCore (StringConstant (T.unwords (V.toList (fmap coreToString xs')))))
+              _ -> error "can only unwords a string"))
+  , definitionType = FunctionType JSONType JSONType
+  }
+
+unlinesf :: Definition
+unlinesf =
+  Definition
+  { definitionDoc = "Join the list of strings into a string separated by lines and terminated by a new line"
+  , definitionName = Variable "unlines"
+  , definitionCore =
+      (EvalCore
+         (\xs ->
+            case xs of
+              (ArrayCore xs') ->
+                (ConstantCore (StringConstant (T.unlines (V.toList (fmap coreToString xs')))))
+              _ -> error "can only unlines a string"))
   , definitionType = FunctionType JSONType JSONType
   }
 

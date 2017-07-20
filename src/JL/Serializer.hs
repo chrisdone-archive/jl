@@ -8,6 +8,7 @@ module JL.Serializer where
 import           Control.Monad.Writer
 import           Data.Aeson
 import           Data.Scientific
+import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Vector as V
 import           JL.Printer
@@ -18,6 +19,12 @@ coreToNumber =
   \case
     ConstantCore (NumberConstant xs) -> xs
     x -> error ("expected number but found: " <> T.unpack (prettyCore x))
+
+coreToString :: Core -> Text
+coreToString =
+  \case
+    ConstantCore (StringConstant xs) -> xs
+    x -> error ("expected string but found: " <> T.unpack (prettyCore x))
 
 coreToArray :: Core -> V.Vector Core
 coreToArray =
