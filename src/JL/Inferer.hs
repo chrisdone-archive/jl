@@ -43,7 +43,7 @@ check ctx expr =
       let xty = VariableType sym
       (rty, cs) <- check (M.insert x xty ctx) body
       return (FunctionType xty rty, cs)
-    ConstantExpression {} -> return (ValueType, mempty)
+    ConstantExpression {} -> return (JSONType, mempty)
     ApplicationExpression f x -> do
       (fty, cs1) <- check ctx f
       (xty, cs2) <- check ctx x
@@ -70,7 +70,7 @@ check ctx expr =
       let rty = VariableType sym
           cs =
             S.insert
-              (condty, ValueType)
+              (condty, JSONType)
               (S.insert (aty, bty) (cs1 <> cs2 <> cs3))
       pure (rty, cs)
     RecordExpression pairs -> do
@@ -78,15 +78,15 @@ check ctx expr =
         foldM
           (\cs (_, e) -> do
              (pty, cs') <- check ctx e
-             pure (S.insert (pty, ValueType) (cs <> cs')))
+             pure (S.insert (pty, JSONType) (cs <> cs')))
           mempty
           (HM.toList pairs)
-      pure (ValueType, cs)
+      pure (JSONType, cs)
     SubscriptExpression e ks -> do
       (t1, c1) <-
         (case e of
            ExpressionSubscripted es -> check ctx es
-           WildcardSubscripted -> pure (FunctionType ValueType ValueType, mempty))
+           WildcardSubscripted -> pure (FunctionType JSONType JSONType, mempty))
       cs <-
         foldM
           (\cs s ->
@@ -94,12 +94,12 @@ check ctx expr =
                PropertySubscript {} -> pure cs
                ExpressionSubscript es -> do
                  (pty, cs') <- check ctx es
-                 pure (S.insert (pty, ValueType) (cs <> cs')))
+                 pure (S.insert (pty, JSONType) (cs <> cs')))
           c1
           ks
       let rty = case e of
-                  WildcardSubscripted -> FunctionType ValueType ValueType
-                  _ -> ValueType
+                  WildcardSubscripted -> FunctionType JSONType JSONType
+                  _ -> JSONType
       pure
         ( rty
         , S.insert (t1, rty) cs)
@@ -108,10 +108,10 @@ check ctx expr =
         foldM
           (\cs e -> do
              (pty, cs') <- check ctx e
-             pure (S.insert (pty, ValueType) (cs <> cs')))
+             pure (S.insert (pty, JSONType) (cs <> cs')))
           mempty
           as
-      pure (ValueType, cs)
+      pure (JSONType, cs)
 
 -- | Generate a fresh type variable.
 generateTypeVariable
@@ -157,7 +157,7 @@ occurs x (VariableType y)
   | x == y = True
   | otherwise = False
 occurs x (FunctionType a b) = occurs x a || occurs x b
-occurs _ ValueType = False
+occurs _ JSONType = False
 
 -- | Substitute the unified type into the constraints.
 substitute :: Map TypeVariable Type -> [(Type, Type)] -> [(Type, Type)]
@@ -173,7 +173,7 @@ replace s' t' = M.foldrWithKey go t' s'
       | s1 == s2 = t
       | otherwise = VariableType s2
     go s t (FunctionType t2 t3) = FunctionType (go s t t2) (go s t t3)
-    go _ _ ValueType = ValueType
+    go _ _ JSONType = JSONType
 
 -- | Quote something for showing to the programmer.
 quote :: Text -> Text

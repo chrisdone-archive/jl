@@ -23,7 +23,7 @@ instance Exception ParseException
 data Type
   = VariableType !TypeVariable
   | FunctionType !Type !Type
-  | ValueType
+  | JSONType
   deriving (Ord, Eq, Show)
 
 -- | A parsed expression.

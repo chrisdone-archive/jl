@@ -22,7 +22,7 @@ prettyType = render
       where
         go t =
           case t of
-            ValueType -> "Value"
+            JSONType -> "JSON"
             VariableType (TypeVariable n) -> nameStream !! n
             FunctionType a b ->
               (case a of

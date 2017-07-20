@@ -91,7 +91,7 @@ keysf =
                 ArrayCore
                   (V.fromList (map (ConstantCore . StringConstant) (HM.keys o)))
               _ -> error "keys function expected an object"))
-  , definitionType = FunctionType ValueType ValueType
+  , definitionType = FunctionType JSONType JSONType
   }
 
 elemsf :: Definition
@@ -107,7 +107,7 @@ elemsf =
                 ArrayCore
                   (V.fromList (HM.elems o))
               _ -> error "elems function expected an object"))
-  , definitionType = FunctionType ValueType ValueType
+  , definitionType = FunctionType JSONType JSONType
   }
 
 modifyf :: Definition
@@ -129,10 +129,10 @@ modifyf =
                         _ -> error "type error for args to modify"))))
   , definitionType =
       FunctionType
-        ValueType
+        JSONType
         (FunctionType
-           (FunctionType ValueType ValueType)
-           (FunctionType ValueType ValueType))
+           (FunctionType JSONType JSONType)
+           (FunctionType JSONType JSONType))
   }
 
 getf :: Definition
@@ -155,7 +155,7 @@ getf =
                         Nothing -> error ("missing array index " <> show i)
                         Just v' -> v')
                    _ -> error "type error for get arguments")))
-  , definitionType = FunctionType ValueType (FunctionType ValueType ValueType)
+  , definitionType = FunctionType JSONType (FunctionType JSONType JSONType)
   }
 
 setf :: Definition
@@ -176,8 +176,8 @@ setf =
                         _ -> error "type error in arguments to: set"))))
   , definitionType =
       FunctionType
-        ValueType
-        (FunctionType ValueType (FunctionType ValueType ValueType))
+        JSONType
+        (FunctionType JSONType (FunctionType JSONType JSONType))
   }
 
 idf :: Definition
@@ -186,7 +186,7 @@ idf =
   { definitionDoc = "Identity function, returns its input unchanged"
   , definitionName = Variable "id"
   , definitionCore = (EvalCore (\x -> x))
-  , definitionType = FunctionType ValueType ValueType
+  , definitionType = FunctionType JSONType JSONType
   }
 
 flipf :: Definition
@@ -202,8 +202,8 @@ flipf =
                  EvalCore (\y -> eval (ApplicationCore (ApplicationCore f y) x)))))
   , definitionType =
       FunctionType
-        (FunctionType ValueType (FunctionType ValueType ValueType))
-        (FunctionType ValueType (FunctionType ValueType ValueType))
+        (FunctionType JSONType (FunctionType JSONType JSONType))
+        (FunctionType JSONType (FunctionType JSONType JSONType))
   }
 
 compose :: Definition
@@ -219,10 +219,10 @@ compose =
                 EvalCore (\x -> eval (ApplicationCore g (ApplicationCore f x)))))
   , definitionType =
       FunctionType
-        (FunctionType ValueType ValueType)
+        (FunctionType JSONType JSONType)
         (FunctionType
-           (FunctionType ValueType ValueType)
-           (FunctionType ValueType ValueType))
+           (FunctionType JSONType JSONType)
+           (FunctionType JSONType JSONType))
   }
 
 foldf :: Definition
@@ -258,8 +258,8 @@ foldf =
                        _ -> error "can only fold sequences")))
   , definitionType =
       (FunctionType
-         ((FunctionType ValueType (FunctionType ValueType ValueType)))
-         (FunctionType ValueType (FunctionType ValueType ValueType)))
+         ((FunctionType JSONType (FunctionType JSONType JSONType)))
+         (FunctionType JSONType (FunctionType JSONType JSONType)))
   }
 
 zipw :: Definition
@@ -285,8 +285,8 @@ zipw =
                        _ -> error "can only zip two arrays")))
   , definitionType =
       FunctionType
-        (FunctionType ValueType (FunctionType ValueType ValueType))
-        (FunctionType ValueType (FunctionType ValueType ValueType))
+        (FunctionType JSONType (FunctionType JSONType JSONType))
+        (FunctionType JSONType (FunctionType JSONType JSONType))
   }
 
 elemf :: Definition
@@ -318,7 +318,7 @@ elemf =
                   _ ->
                     error
                       "can only check elements from sequences"))
-  , definitionType = FunctionType ValueType (FunctionType ValueType ValueType)
+  , definitionType = FunctionType JSONType (FunctionType JSONType JSONType)
   }
 
 takef :: Definition
@@ -337,7 +337,7 @@ takef =
                   (ConstantCore (NumberConstant n'), ConstantCore (StringConstant xs')) ->
                     (ConstantCore (StringConstant (T.take (round n') xs')))
                   _ -> error "can only take from sequences"))
-  , definitionType = FunctionType ValueType (FunctionType ValueType ValueType)
+  , definitionType = FunctionType JSONType (FunctionType JSONType JSONType)
   }
 
 dropf :: Definition
@@ -356,7 +356,7 @@ dropf =
                   (ConstantCore (NumberConstant n'), ArrayCore xs') ->
                     (ArrayCore (V.drop (round n') xs'))
                   _ -> error "can only drop from sequences"))
-  , definitionType = FunctionType ValueType (FunctionType ValueType ValueType)
+  , definitionType = FunctionType JSONType (FunctionType JSONType JSONType)
   }
 
 concatf :: Definition
@@ -371,7 +371,7 @@ concatf =
               (ArrayCore xs') ->
                 (ArrayCore (V.concat (map coreToArray (V.toList xs'))))
               _ -> error "can only concat arrays"))
-  , definitionType = FunctionType ValueType ValueType
+  , definitionType = FunctionType JSONType JSONType
   }
 
 rev :: Definition
@@ -387,7 +387,7 @@ rev =
               (ConstantCore (StringConstant xs')) ->
                 (ConstantCore (StringConstant (T.reverse xs')))
               _ -> error "can only reverse a sequence"))
-  , definitionType = FunctionType ValueType ValueType
+  , definitionType = FunctionType JSONType JSONType
   }
 
 nubf :: Definition
@@ -407,7 +407,7 @@ nubf =
                    (StringConstant
                       (T.pack (nub (T.unpack xs')))))
               _ -> error "can only nub a sequence"))
-  , definitionType = FunctionType ValueType ValueType
+  , definitionType = FunctionType JSONType JSONType
   }
 
 sortf :: Definition
@@ -427,7 +427,7 @@ sortf =
                    (StringConstant
                       (T.pack (sort (T.unpack xs')))))
               _ -> error "can only sort a sequence"))
-  , definitionType = FunctionType ValueType ValueType
+  , definitionType = FunctionType JSONType JSONType
   }
 
 len :: Definition
@@ -444,7 +444,7 @@ len =
               (ConstantCore (StringConstant xs')) ->
                 (ConstantCore (NumberConstant (fromIntegral (T.length xs'))))
               _ -> error "can only take length of sequences"))
-  , definitionType = FunctionType ValueType ValueType
+  , definitionType = FunctionType JSONType JSONType
   }
 
 empty :: Definition
@@ -460,7 +460,7 @@ empty =
               (ConstantCore (StringConstant xs')) ->
                 (ConstantCore (BoolConstant (T.null xs')))
               _ -> error "can only check if sequences are empty"))
-  , definitionType = FunctionType ValueType ValueType
+  , definitionType = FunctionType JSONType JSONType
   }
 
 dropWhilef :: Definition
@@ -498,8 +498,8 @@ dropWhilef =
                   _ -> error "can only dropWhile over sequences"))
   , definitionType =
       FunctionType
-        (FunctionType ValueType ValueType)
-        (FunctionType ValueType ValueType)
+        (FunctionType JSONType JSONType)
+        (FunctionType JSONType JSONType)
   }
 
 takeWhilef :: Definition
@@ -538,8 +538,8 @@ takeWhilef =
                    _ -> error "can only takeWhile over sequences")))
   , definitionType =
       FunctionType
-        (FunctionType ValueType ValueType)
-        (FunctionType ValueType ValueType)
+        (FunctionType JSONType JSONType)
+        (FunctionType JSONType JSONType)
   }
 
 filterf :: Definition
@@ -577,8 +577,8 @@ filterf =
                   _ -> error "can only filter over sequences"))
   , definitionType =
       FunctionType
-        (FunctionType ValueType ValueType)
-        (FunctionType ValueType ValueType)
+        (FunctionType JSONType JSONType)
+        (FunctionType JSONType JSONType)
   }
 
 mapf :: Definition
@@ -610,8 +610,8 @@ mapf =
                   _ -> error "can only map over sequences"))
   , definitionType =
       FunctionType
-        (FunctionType ValueType ValueType)
-        (FunctionType ValueType ValueType)
+        (FunctionType JSONType JSONType)
+        (FunctionType JSONType JSONType)
   }
 
 --------------------------------------------------------------------------------
@@ -630,7 +630,7 @@ arithmeticOperator name f =
                   (ConstantCore (NumberConstant a), ConstantCore (NumberConstant b)) ->
                     ConstantCore (NumberConstant (f a b))
                   _ -> error ("type error for arguments to " <> show name)))
-  , definitionType = ValueType .-> ValueType .-> ValueType
+  , definitionType = JSONType .-> JSONType .-> JSONType
   , definitionDoc = "a " <> name <> " b"
   }
 
@@ -647,7 +647,7 @@ boolOperator name f =
                   (ConstantCore (BoolConstant a), ConstantCore (BoolConstant b)) ->
                     ConstantCore (BoolConstant (f a b))
                   _ -> error ("type error for arguments to " <> show name)))
-  , definitionType = ValueType .-> ValueType .-> ValueType
+  , definitionType = JSONType .-> JSONType .-> JSONType
   , definitionDoc = "a " <> name <> " b"
   }
 
@@ -662,7 +662,7 @@ arithmeticFun name f =
              (ConstantCore (NumberConstant a)) ->
                ConstantCore (NumberConstant (f a))
              _ -> error ("type error for arguments to " <> show name))
-  , definitionType = ValueType .-> ValueType
+  , definitionType = JSONType .-> JSONType
   , definitionDoc = name <> " b"
   }
 
@@ -677,7 +677,7 @@ boolFun name f =
              (ConstantCore (BoolConstant a)) ->
                ConstantCore (BoolConstant (f a))
              _ -> error ("type error for arguments to " <> show name))
-  , definitionType = ValueType .-> ValueType
+  , definitionType = JSONType .-> JSONType
   , definitionDoc = name <> " b"
   }
 
@@ -691,7 +691,7 @@ predicateOperator name f =
            EvalCore
              (\y ->
                 ConstantCore (BoolConstant (f (coreToValue x) (coreToValue y)))))
-  , definitionType = ValueType .-> ValueType .-> ValueType
+  , definitionType = JSONType .-> JSONType .-> JSONType
   , definitionDoc = "a " <> name <> " b"
   }
 
@@ -708,7 +708,7 @@ numericPredicateOperator name f =
                   (ConstantCore (NumberConstant a), ConstantCore (NumberConstant b)) ->
                     ConstantCore (BoolConstant (f a b))
                   _ -> error ("type error for arguments to " <> show name)))
-  , definitionType = ValueType .-> ValueType .-> ValueType
+  , definitionType = JSONType .-> JSONType .-> JSONType
   , definitionDoc = "a " <> name <> " b"
   }
 
