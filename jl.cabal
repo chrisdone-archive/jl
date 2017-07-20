@@ -1,14 +1,14 @@
 name:                jl
 version:             0.1.0.0
--- synopsis:
--- description:
+synopsis:            Functional sed for JSON
+description:         jl ("JSON lambda") is a tiny functional language for querying and manipulating JSON.
 homepage:            https://github.com/chrisdone/jl#readme
 license:             BSD3
 license-file:        LICENSE
 author:              Chris Done
 maintainer:          chrisdone@gmail.com
-copyright:           2015 Chris Done
-category:            Web
+copyright:           2017 Chris Done
+category:            Development
 build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
@@ -32,7 +32,7 @@ library
 executable jl
   hs-source-dirs:      app
   main-is:             Main.hs
-  ghc-options:         -Wall -O2
+  ghc-options:         -Wall -O2 -static
   build-depends:       base
                      , jl, text, aeson, containers, bytestring, mtl, optparse-simple, vector
   default-language:    Haskell2010
