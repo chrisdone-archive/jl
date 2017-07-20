@@ -12,7 +12,7 @@ $ jl 'map $ \o -> { sha: o.sha, ps: map _.sha o.parents }' x.json
 
 ## Installing
 
-Binary releases for Linux and OS X are available here: https://github.com/chrisdone/jl/releases
+Binary releases for Linux and OS X are available [here](https://github.com/chrisdone/jl/releases).
 
 Installing from source:
 
