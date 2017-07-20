@@ -129,31 +129,31 @@ jl 'map (\o -> { sha: o.sha, ps: map _.sha o.parents }) | filter (\o -> length o
 ## Record access
 
 ```haskell
-get :: Value → Value → Value
+get :: JSON → JSON → JSON
 ```
 
 Get the value at k from the object
 
 ```haskell
-set :: Value → Value → Value → Value
+set :: JSON → JSON → JSON → JSON
 ```
 
 Set the value k to v in object
 
 ```haskell
-modify :: Value → (Value → Value) → Value → Value
+modify :: JSON → (JSON → JSON) → JSON → JSON
 ```
 
 Modify the object at k with function f
 
 ```haskell
-keys :: Value → Value
+keys :: JSON → JSON
 ```
 
 Get all keys of the object
 
 ```haskell
-elems :: Value → Value
+elems :: JSON → JSON
 ```
 
 Get all elements of the object
@@ -162,106 +162,169 @@ Get all elements of the object
 ## Sequences
 
 ```haskell
-map :: (Value → Value) → Value → Value
+map :: (JSON → JSON) → JSON → JSON
 ```
 
 Apply a function to every element in the sequence
 
 ```haskell
-filter :: (Value → Value) → Value → Value
+filter :: (JSON → JSON) → JSON → JSON
 ```
 
 Keep only items from the sequence for which p returns true
 
 ```haskell
-takeWhile :: (Value → Value) → Value → Value
+takeWhile :: (JSON → JSON) → JSON → JSON
 ```
 
 Take elements from a sequence while given predicate is true
 
 ```haskell
-empty :: Value → Value
+empty :: JSON → JSON
 ```
 
 Is a sequence empty?
 
 ```haskell
-length :: Value → Value
+length :: JSON → JSON
 ```
 
 Get the length of a sequence
 
 ```haskell
-reverse :: Value → Value
+reverse :: JSON → JSON
 ```
 
 Reverse a sequence
 
 ```haskell
-drop :: Value → Value → Value
+drop :: JSON → JSON → JSON
 ```
 
 Drop n items from the sequence
 
 ```haskell
-elem :: Value → Value → Value
+elem :: JSON → JSON → JSON
 ```
 
 Is x an element of y?
 
 ```haskell
-concat :: Value → Value
+concat :: JSON → JSON
 ```
 
 Concatenate a list of sequences into one sequence
 
 ```haskell
-zipWith :: (Value → Value → Value) → Value → Value → Value
+zipWith :: (JSON → JSON → JSON) → JSON → JSON → JSON
 ```
 
 Zip two lists calling with each element to f x y
 
 ```haskell
-take :: Value → Value → Value
+take :: JSON → JSON → JSON
 ```
 
 Take n items from sequence
 
 ```haskell
-fold :: (Value → Value → Value) → Value → Value → Value
+fold :: (JSON → JSON → JSON) → JSON → JSON → JSON
 ```
 
 Fold over a structure with a state.
 
 ```haskell
-dropWhile :: (Value → Value) → Value → Value
+dropWhile :: (JSON → JSON) → JSON → JSON
 ```
 
 Drop elements from a sequence while a predicate is true
 
 ```haskell
-nub :: Value → Value
+any :: (JSON → JSON) → JSON → JSON
+```
+
+Does p return true for any of the elements?
+
+```haskell
+all :: (JSON → JSON) → JSON → JSON
+```
+
+Does p return true for all of the elements?
+
+```haskell
+nub :: JSON → JSON
 ```
 
 Return the sequence with no duplicates; the nub of it
 
 ```haskell
-sort :: Value → Value
+sort :: JSON → JSON
 ```
 
 Return the sequence sorted
+
+```haskell
+append :: JSON → JSON
+```
+
+Append a sequence
+
+```haskell
+sum :: JSON → JSON
+```
+
+Get the sum of a sequence
+
+```haskell
+minimum :: JSON → JSON
+```
+
+Get the minimum of a sequence
+
+```haskell
+maximum :: JSON → JSON
+```
+
+Get the maximum of a sequence
+
+
+## Strings
+
+```haskell
+words :: JSON → JSON
+```
+
+Split the string into a list of words
+
+```haskell
+unwords :: JSON → JSON
+```
+
+Join the list of strings into a string separated by spaces
+
+```haskell
+lines :: JSON → JSON
+```
+
+Split the string into a list of lines
+
+```haskell
+unlines :: JSON → JSON
+```
+
+Join the list of strings into a string separated by lines and terminated by a new line
 
 
 ## Predicate operators
 
 ```haskell
-/= :: Value → Value → Value
+/= :: JSON → JSON → JSON
 ```
 
 a /= b
 
 ```haskell
-= :: Value → Value → Value
+= :: JSON → JSON → JSON
 ```
 
 a = b
@@ -270,19 +333,19 @@ a = b
 ## Boolean operators
 
 ```haskell
-&& :: Value → Value → Value
+&& :: JSON → JSON → JSON
 ```
 
 a && b
 
 ```haskell
-|| :: Value → Value → Value
+|| :: JSON → JSON → JSON
 ```
 
 a || b
 
 ```haskell
-not :: Value → Value
+not :: JSON → JSON
 ```
 
 not b
@@ -291,67 +354,67 @@ not b
 ## Numeric operators
 
 ```haskell
-> :: Value → Value → Value
+> :: JSON → JSON → JSON
 ```
 
 a > b
 
 ```haskell
-< :: Value → Value → Value
+< :: JSON → JSON → JSON
 ```
 
 a < b
 
 ```haskell
->= :: Value → Value → Value
+>= :: JSON → JSON → JSON
 ```
 
 a >= b
 
 ```haskell
-<= :: Value → Value → Value
+<= :: JSON → JSON → JSON
 ```
 
 a <= b
 
 ```haskell
-* :: Value → Value → Value
+* :: JSON → JSON → JSON
 ```
 
 a * b
 
 ```haskell
-+ :: Value → Value → Value
++ :: JSON → JSON → JSON
 ```
 
 a + b
 
 ```haskell
-- :: Value → Value → Value
+- :: JSON → JSON → JSON
 ```
 
 a - b
 
 ```haskell
-/ :: Value → Value → Value
+/ :: JSON → JSON → JSON
 ```
 
 a / b
 
 ```haskell
-min :: Value → Value → Value
+min :: JSON → JSON → JSON
 ```
 
 a min b
 
 ```haskell
-max :: Value → Value → Value
+max :: JSON → JSON → JSON
 ```
 
 a max b
 
 ```haskell
-abs :: Value → Value
+abs :: JSON → JSON
 ```
 
 abs b
@@ -360,19 +423,19 @@ abs b
 ## Function combinators
 
 ```haskell
-id :: Value → Value
+id :: JSON → JSON
 ```
 
 Identity function, returns its input unchanged
 
 ```haskell
-compose :: (Value → Value) → (Value → Value) → Value → Value
+compose :: (JSON → JSON) → (JSON → JSON) → JSON → JSON
 ```
 
 Compose two functions
 
 ```haskell
-flip :: (Value → Value → Value) → Value → Value → Value
+flip :: (JSON → JSON → JSON) → JSON → JSON → JSON
 ```
 
 Flips the argument order of a function of two or more arguments
