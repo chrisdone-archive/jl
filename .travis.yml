@@ -67,7 +67,7 @@ script:
       stack build --no-terminal --test --copy-bins
       mkdir -p releases/
       pwd
-      cp ~/.local/bin releases/jq-$TRAVIS_OS_NAME
+      cp ~/.local/bin/jq releases/jq-$TRAVIS_OS_NAME
       strip releases/jq-$TRAVIS_OS_NAME
       ;;
     cabal)
