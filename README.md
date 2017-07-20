@@ -10,6 +10,16 @@ $ jl 'map $ \o -> { sha: o.sha, ps: map _.sha o.parents }' x.json
 [{"sha":"7b81a836c31500e685d043729259affa8b670a87","ps":["c538237f4e4c381d35f1c15497c...
 ```
 
+## Installing
+
+Binary releases for Linux and OS X are available here: https://github.com/chrisdone/jl/releases
+
+Installing from source:
+
+1. Get [stack](https://haskell-lang.org/get-started)
+2. Run `stack install` in the repository directory.
+3. Add `~/.local/bin/` to your `PATH`.
+
 ## Core syntax
 
 Literals:
