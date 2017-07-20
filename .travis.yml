@@ -90,7 +90,7 @@ deploy:
   provider: releases
   api_key:
     secure: dLLTuDWO5/uxXikOQHT03vsWvTplotRgL7RLtkTV8uv4FXhDibSXJMCFhFCc+QU57vd70lLilFSrPLJywQA5WQfUz56fb/06JR7LWnHU85iedNDxFLCekZR0zQWXhw9jhd5LOVXUm8QCg9PYMSPMABDatec5EJ+sK8rHkKVLr6GPK2JifemC403JoCZuSrrOYo7Y68TX/Un6EQTdGXlnfVF5s0ZHw3mJOF1pd1gfxAjRpB5UHIWpseant+IpZEAIIdXZW6CGn4FPiz3MDKZot1IluqbEKGC0ZukOc7TeSXrsRd19OM+ViEZGcikVCm2/Z6deG5Zbtn+aW6CoKXvpnNu211yZJbVzp9rJ+wZoaieMv5lQVPyMq6u3p0ayg9B6/tUak0GSkUszR8X90ZI8XfLUGhilBYrPrL9SpSbxmaOAcLR1OKzK6nlM8jN+GJTGEGv4CAWv6SbU1ukn7Vqt9oAu7K7wXrosara0ObzSd39CbyOnWUa8sy8GgRO/XnUcC1TyCWgSocdqY+Y9OShdwnKzPWVvYKTyz0wwHyPWdDvxIqsfqOYsgyTSWuIR923JHddhUrVEjSS4ED67BpWvizoKBNYSfzHfv7bBALvV0v6awFEK8UsqWtPMFDbtXuAfduJ39oxCoZrVybNwJTilywMWm19pGC1q5eqfurBDvNU=
-  file: "/home/travis/releases/*"
+  file: "releases/*"
   file_glob: true
   on:
     repo: chrisdone/jl
