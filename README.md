@@ -1,4 +1,4 @@
-# jl
+# jl [![Build Status](https://travis-ci.org/commercialhaskell/jl.png)](https://travis-ci.org/commercialhaskell/jl)
 
 jl ("JSON lambda") is a tiny functional language for querying and
 manipulating JSON.
