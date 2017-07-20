@@ -64,9 +64,10 @@ script:
   set -ex
   case "$BUILD" in
     stack)
-      stack build --no-terminal --test
+      stack build --no-terminal --test --copy-bins
       mkdir -p releases/
-      cp .stack-work/install/*/lts-*/*/bin/jq releases/jq-$TRAVIS_OS_NAME
+      pwd
+      cp ~/.local/bin releases/jq-$TRAVIS_OS_NAME
       strip releases/jq-$TRAVIS_OS_NAME
       ;;
     cabal)
