@@ -95,3 +95,4 @@ deploy:
   on:
     repo: chrisdone/jl
     tags: true
+  skip_cleanup: true
