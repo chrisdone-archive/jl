@@ -64,7 +64,14 @@ script:
   set -ex
   case "$BUILD" in
     stack)
-      stack build --no-terminal --test --copy-bins
+      case "$TRAVIS_OS_NAME" in
+        linux)
+          stack build --no-terminal --test --copy-bins --ghc-options='-optl-static -optl-pthread'
+        ;;
+        osx)
+          stack build --no-terminal --test --copy-bins
+        ;;
+      esac
       mkdir -p releases/
       pwd
       cp ~/.local/bin/jl releases/jl-$TRAVIS_OS_NAME
