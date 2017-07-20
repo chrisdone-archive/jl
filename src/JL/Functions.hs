@@ -52,8 +52,12 @@ functions =
       , takef
       , foldf
       , dropWhilef
+      , anyf
+      , allf
       , nubf
       , sortf
+      , appendf
+      ,  sumf, minimumf, maximumf
       ])
   , ( "Predicate operators"
     , [predicateOperator "/=" (/=), predicateOperator "=" (==)])
@@ -390,6 +394,24 @@ rev =
   , definitionType = FunctionType JSONType JSONType
   }
 
+appendf :: Definition
+appendf =
+  Definition
+  { definitionDoc = "Append a sequence"
+  , definitionName = Variable "append"
+  , definitionCore =
+      (EvalCore
+         (\xs ->
+            (EvalCore
+               (\ys ->
+                  case (xs, ys) of
+                    (ArrayCore xs', ArrayCore ys') -> (ArrayCore (xs' <> ys'))
+                    (ConstantCore (StringConstant xs'), ConstantCore (StringConstant ys')) ->
+                      (ConstantCore (StringConstant (xs' <> ys')))
+                    _ -> error "can only append two sequences of the same type"))))
+  , definitionType = FunctionType JSONType JSONType
+  }
+
 nubf :: Definition
 nubf =
   Definition
@@ -447,6 +469,66 @@ len =
   , definitionType = FunctionType JSONType JSONType
   }
 
+sumf :: Definition
+sumf =
+  Definition
+  { definitionDoc = "Get the sum of a sequence"
+  , definitionName = Variable "sum"
+  , definitionCore =
+      (EvalCore
+         (\xs ->
+            case xs of
+              (ArrayCore xs') ->
+                (ConstantCore (NumberConstant (V.sum (fmap coreToNumber xs'))))
+              _ -> error "can only take sum of arrays"))
+  , definitionType = FunctionType JSONType JSONType
+  }
+
+productf :: Definition
+productf =
+  Definition
+  { definitionDoc = "Get the product of a sequence"
+  , definitionName = Variable "product"
+  , definitionCore =
+      (EvalCore
+         (\xs ->
+            case xs of
+              (ArrayCore xs') ->
+                (ConstantCore (NumberConstant (V.product (fmap coreToNumber xs'))))
+              _ -> error "can only take product of arrays"))
+  , definitionType = FunctionType JSONType JSONType
+  }
+
+maximumf :: Definition
+maximumf =
+  Definition
+  { definitionDoc = "Get the maximum of a sequence"
+  , definitionName = Variable "maximum"
+  , definitionCore =
+      (EvalCore
+         (\xs ->
+            case xs of
+              (ArrayCore xs') ->
+                (ConstantCore (NumberConstant (V.maximum (fmap coreToNumber xs'))))
+              _ -> error "can only take maximum of arrays"))
+  , definitionType = FunctionType JSONType JSONType
+  }
+
+minimumf :: Definition
+minimumf =
+  Definition
+  { definitionDoc = "Get the minimum of a sequence"
+  , definitionName = Variable "minimum"
+  , definitionCore =
+      (EvalCore
+         (\xs ->
+            case xs of
+              (ArrayCore xs') ->
+                (ConstantCore (NumberConstant (V.minimum (fmap coreToNumber xs'))))
+              _ -> error "can only take minimum of arrays"))
+  , definitionType = FunctionType JSONType JSONType
+  }
+
 empty :: Definition
 empty =
   Definition
@@ -461,6 +543,86 @@ empty =
                 (ConstantCore (BoolConstant (T.null xs')))
               _ -> error "can only check if sequences are empty"))
   , definitionType = FunctionType JSONType JSONType
+  }
+
+anyf :: Definition
+anyf =
+  Definition
+  { definitionDoc = "Does p return true for any of the elements?"
+  , definitionName = Variable "any"
+  , definitionCore =
+      EvalCore
+        (\f ->
+           EvalCore
+             (\xs ->
+                case xs of
+                  (ArrayCore xs') ->
+                    (ConstantCore
+                       (BoolConstant
+                          (V.any
+                             (\x ->
+                                case eval (ApplicationCore f x) of
+                                  ConstantCore (BoolConstant b) -> b
+                                  _ -> True)
+                             xs')))
+                  (ConstantCore (StringConstant xs')) ->
+                    (ConstantCore
+                       (BoolConstant
+                          (T.any
+                             (\x ->
+                                case eval
+                                       (ApplicationCore
+                                          f
+                                          (ConstantCore
+                                             (StringConstant (T.singleton x)))) of
+                                  ConstantCore (BoolConstant b) -> b
+                                  _ -> True)
+                             xs')))
+                  _ -> error "can only any over sequences"))
+  , definitionType =
+      FunctionType
+        (FunctionType JSONType JSONType)
+        (FunctionType JSONType JSONType)
+  }
+
+allf :: Definition
+allf =
+  Definition
+  { definitionDoc = "Does p return true for all of the elements?"
+  , definitionName = Variable "all"
+  , definitionCore =
+      EvalCore
+        (\f ->
+           EvalCore
+             (\xs ->
+                case xs of
+                  (ArrayCore xs') ->
+                    (ConstantCore
+                       (BoolConstant
+                          (V.all
+                             (\x ->
+                                case eval (ApplicationCore f x) of
+                                  ConstantCore (BoolConstant b) -> b
+                                  _ -> True)
+                             xs')))
+                  (ConstantCore (StringConstant xs')) ->
+                    (ConstantCore
+                       (BoolConstant
+                          (T.all
+                             (\x ->
+                                case eval
+                                       (ApplicationCore
+                                          f
+                                          (ConstantCore
+                                             (StringConstant (T.singleton x)))) of
+                                  ConstantCore (BoolConstant b) -> b
+                                  _ -> True)
+                             xs')))
+                  _ -> error "can only all over sequences"))
+  , definitionType =
+      FunctionType
+        (FunctionType JSONType JSONType)
+        (FunctionType JSONType JSONType)
   }
 
 dropWhilef :: Definition
