@@ -55,6 +55,11 @@ For arrays:
 
     _[0] is sugar for   (\o -> get 0 o)
 
+Or objects:
+
+    _[k]     is sugar for   (\o -> get k o)
+    _["foo"] is sugar for   (\o -> get "foo" o)
+
 Function composition:
 
     a | b | c is sugar for `\x -> c (b (a x)`

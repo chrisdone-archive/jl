@@ -9,6 +9,7 @@
 module JL.Tokenizer where
 
 import           Control.Monad
+import           Data.Char
 import           Data.List
 import           Data.Monoid
 import           Data.Text (Text)
@@ -102,14 +103,11 @@ tokenTokenizer prespaces =
            parsing
              VariableToken
              (do variable <-
-                   do start <- many1 (satisfy (flip elem ("_" ++ ['a' .. 'z'])))
+                   do start <- many1 (satisfy (\c -> c=='_' || isLetter c))
                       end <-
                         many
                           (satisfy
-                             (flip
-                                elem
-                                ("_" ++
-                                 ['A' .. 'Z'] ++ ['a' .. 'z'] ++ ['0' .. '9'])))
+                             (\c -> c=='_' || isLetter c || isDigit c))
                       pure (start ++ end)
                  pure (T.pack variable))
              "variable (e.g. “elephant”, “age”, “t2”, etc.)"
