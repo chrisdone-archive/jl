@@ -138,6 +138,7 @@ expressionParser = pipes
                         (consumeToken
                            (\case
                               VariableToken i -> Just i
+                              Integer i -> Just (T.pack (show i))
                               _ -> Nothing))
                     collectsubscripts (ks . (PropertySubscript k :)) a
                   else pure (ks [], a)
