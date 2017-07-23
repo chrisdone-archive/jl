@@ -6,6 +6,7 @@ module Main where
 
 import           Control.Monad.Writer
 import           Data.Aeson
+import           Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy.Char8 as L8
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Map.Strict as M
@@ -23,12 +24,12 @@ import           Options.Applicative.Simple
 
 main :: IO ()
 main = do
-  do ((inp, file, aslines, browse, markdown), ()) <-
+  do ((inp, file, aslines, browse, markdown, pretty), ()) <-
        simpleOptions
          "0.0.0"
          "jl - JSON Lambda calculus"
          "Command-line language for querying and outputting JSON."
-         ((,,,,) <$>
+         ((,,,,,) <$>
           strArgument
             (metavar "CODE" <>
              help "JL code; supports completion of function names" <>
@@ -48,7 +49,12 @@ main = do
             False
             True
             (long "browse-markdown" <>
-             help "Prints out all available functions, in markdown format"))
+             help "Prints out all available functions, in markdown format") <*>
+          flag
+            False
+            True
+            (short 'p' <> long "pretty" <>
+             help "Outputs JSON in a human-friendly format"))
          empty
      let block xs =
            if markdown
@@ -84,10 +90,10 @@ main = do
                 case file of
                   Just fp -> do
                     bytes <- L.readFile fp
-                    L8.putStr (process expr0 aslines bytes)
-                  Nothing -> L.interact (process expr0 aslines)
+                    L8.putStr (process pretty expr0 aslines bytes)
+                  Nothing -> L.interact (process pretty expr0 aslines)
   where
-    process expr0 aslines =
+    process pretty expr0 aslines =
       \js ->
         case decode js of
           Nothing -> error "invalid JSON"
@@ -106,8 +112,9 @@ main = do
                                 "\n"
                                 (map encode (V.toList (asArray (coreToValue v)))) <>
                               "\n"
-                         else encode (coreToValue v) <> "\n"
+                         else encode' (coreToValue v) <> "\n"
                        where asArray =
                                \case
                                  Array xs -> xs
                                  x -> V.singleton x
+                             encode' = if pretty then encodePretty else encode
