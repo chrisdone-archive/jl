@@ -46,6 +46,10 @@ Arrays:
 
     [1, 4 * 5, id 5]
 
+Conditionals:
+
+    if x then y else z
+
 Short-hand for fields:
 
     o.f  is sugar for         get "f" o
