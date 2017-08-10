@@ -34,5 +34,5 @@ executable jl
   main-is:             Main.hs
   ghc-options:         -Wall -O2 -static
   build-depends:       base
-                     , jl, text, aeson, aeson-pretty, containers, bytestring, mtl, optparse-simple, vector
+                     , jl, text, aeson, aeson-pretty, containers, bytestring, mtl, optparse-simple, vector, conduit, conduit-extra
   default-language:    Haskell2010

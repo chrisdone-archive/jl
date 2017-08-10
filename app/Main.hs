@@ -5,10 +5,15 @@
 module Main where
 
 import           Control.Monad.Writer
-import           Data.Aeson
-import           Data.Aeson.Encode.Pretty
-import qualified Data.ByteString.Lazy.Char8 as L8
+import qualified Data.Aeson as Aeson
+import qualified Data.Aeson.Encode.Pretty as Aeson
+import qualified Data.Aeson.Parser as Aeson
 import qualified Data.ByteString.Lazy as L
+import qualified Data.ByteString.Lazy.Char8 as L8
+import           Data.Conduit ( ($=), ($$))
+import           Data.Conduit.Attoparsec
+import qualified Data.Conduit.Binary as CB
+import qualified Data.Conduit.List as CL
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -21,10 +26,13 @@ import           JL.Printer
 import           JL.Serializer
 import           JL.Types
 import           Options.Applicative.Simple
+import           System.IO
 
 main :: IO ()
 main = do
-  do ((inp, file, aslines, browse, markdown, pretty), ()) <-
+  do hSetBuffering stdout LineBuffering
+     hSetBuffering stdin LineBuffering
+     ((inp, file, aslines, browse, markdown, pretty), ()) <-
        simpleOptions
          "0.0.0"
          "jl - JSON Lambda calculus"
@@ -90,31 +98,41 @@ main = do
                 case file of
                   Just fp -> do
                     bytes <- L.readFile fp
-                    L8.putStr (process pretty expr0 aslines bytes)
-                  Nothing -> L.interact (process pretty expr0 aslines)
+                    case Aeson.decode bytes of
+                      Nothing -> hPutStr stderr "invalid input JSON"
+                      Just j -> handleJson pretty expr0 aslines j
+                  Nothing -> process pretty expr0 aslines
   where
     process pretty expr0 aslines =
-      \js ->
-        case decode js of
-          Nothing -> error "invalid JSON"
-          Just j ->
-            let expr = ApplicationExpression expr0 (valueToExpression j)
-            in case infer context expr (map TypeVariable [1 ..]) of
-                 !_ ->
-                   case eval
-                          (foldl
-                             (\e (v, f) -> subst v f e)
-                             (desugar expr)
-                             (M.toList scope)) of
-                     v ->
-                       if aslines
-                         then L.intercalate
-                                "\n"
-                                (map encode (V.toList (asArray (coreToValue v)))) <>
-                              "\n"
-                         else encode' (coreToValue v) <> "\n"
-                       where asArray =
-                               \case
-                                 Array xs -> xs
-                                 x -> V.singleton x
-                             encode' = if pretty then encodePretty else encode
+      CB.sourceHandle stdin $= CB.lines $= conduitParserEither Aeson.value $=
+      CL.mapM_
+        (either
+           (hPutStrLn stderr . errorMessage)
+           (handleJson pretty expr0 aslines . snd)) $$
+      CL.sinkNull
+
+-- | Handle a JSON input, printing out one to many JSON values.
+handleJson :: Bool -> Expression -> Bool -> Aeson.Value -> IO ()
+handleJson pretty expr0 aslines j =
+  let expr = ApplicationExpression expr0 (valueToExpression j)
+  in case infer context expr (map TypeVariable [1 ..]) of
+       !_ ->
+         case eval
+                (foldl
+                   (\e (v, f) -> subst v f e)
+                   (desugar expr)
+                   (M.toList scope)) of
+           v ->
+             if aslines
+               then mapM_
+                      L8.putStrLn
+                      (map Aeson.encode (V.toList (asArray (coreToValue v))))
+               else L8.putStrLn (encode' (coreToValue v))
+             where asArray =
+                     \case
+                       Aeson.Array xs -> xs
+                       x -> V.singleton x
+                   encode' =
+                     if pretty
+                       then Aeson.encodePretty
+                       else Aeson.encode
