@@ -104,7 +104,7 @@ main = do
                   Nothing -> process pretty expr0 aslines
   where
     process pretty expr0 aslines =
-      CB.sourceHandle stdin $= CB.lines $= conduitParserEither Aeson.value $=
+      CB.sourceHandle stdin $= conduitParserEither Aeson.value $=
       CL.mapM_
         (either
            (hPutStrLn stderr . errorMessage)
