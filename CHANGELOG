@@ -1,0 +1,7 @@
+0.0.1:
+	* Add more functions: any, all, append, sum, maximum, minimum,
+	  product, lines, words
+	* Support any letter in variable names
+	* Support _.123 integer indexing.
+	* Add pretty printing support via --pretty
+	* Support streaming input out of the box
