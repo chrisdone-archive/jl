@@ -1,5 +1,4 @@
-# jl [![Build Status](https://travis-ci.org/chrisdone/jl.svg)](https://travis-ci.org/chrisdone/jl) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/chrisdone/path?svg=true)](https://ci.appveyor.com/project/chrisdone/jl)
-
+# jl [![Build Status](https://travis-ci.org/chrisdone/jl.svg)](https://travis-ci.org/chrisdone/jl) 
 jl ("JSON lambda") is a tiny functional language for querying and
 manipulating JSON.
 
@@ -14,7 +13,7 @@ $ jl 'map $ \o -> { sha: o.sha, ps: map _.sha o.parents }' x.json
 
 Binary releases for Linux and OS X are available [here](https://github.com/chrisdone/jl/releases).
 
-Builds on Windows (see AppVeyor status), haven't added Windows
+Builds on Windows (see [AppVeyor status](https://ci.appveyor.com/project/chrisdone/jl)), haven't added Windows
 binaries to the releases yet.
 
 Installing from source:
