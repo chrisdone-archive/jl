@@ -1,4 +1,4 @@
-# jl [![Build Status](https://travis-ci.org/chrisdone/jl.png)](https://travis-ci.org/chrisdone/jl) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/chrisdone/path?svg=true)](https://ci.appveyor.com/project/chrisdone/jl)
+# jl [![Build Status](https://travis-ci.org/chrisdone/jl.svg)](https://travis-ci.org/chrisdone/jl) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/chrisdone/path?svg=true)](https://ci.appveyor.com/project/chrisdone/jl)
 
 jl ("JSON lambda") is a tiny functional language for querying and
 manipulating JSON.
