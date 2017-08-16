@@ -1,5 +1,5 @@
 name:                jl
-version:             0.0.1
+version:             0.0.3
 synopsis:            Functional sed for JSON
 description:         jl ("JSON lambda") is a tiny functional language for querying and manipulating JSON.
 homepage:            https://github.com/chrisdone/jl#readme
