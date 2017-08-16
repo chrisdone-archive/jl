@@ -1,4 +1,8 @@
-0.0.1:
+0.0.3:
+	* Remove keyword checks (e.g. "data"), jl doesn't have any
+	unsupported keywords
+
+0.0.2:
 	* Add more functions: any, all, append, sum, maximum, minimum,
 	  product, lines, words
 	* Support any letter in variable names
