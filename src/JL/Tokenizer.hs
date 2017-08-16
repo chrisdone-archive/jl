@@ -176,34 +176,6 @@ parsing ::  (Text -> t) -> Parser  Text -> String -> Parser  (t, Location)
 parsing constructor parser description = do
   start <- getPosition
   text <- parser <?> description
-  mapM_
-    (bailOnUnsupportedKeywords text)
-    [ "class"
-    , "data"
-    , "default"
-    , "deriving"
-    , "do"
-    , "forall"
-    , "import"
-    , "infix"
-    , "infixl"
-    , "infixr"
-    , "instance"
-    , "module"
-    , "if"
-    , "then"
-    , "else"
-    , "case"
-    , "newtype"
-    , "qualified"
-    , "type"
-    , "where"
-    , "foreign"
-    , "ccall"
-    , "as"
-    , "safe"
-    , "unsafe"
-    ]
   end <- getPosition
   pure
     ( constructor text
@@ -212,17 +184,6 @@ parsing constructor parser description = do
         (sourceColumn start)
         (sourceLine end)
         (sourceColumn end))
-  where
-    supportedKeywords = ["if","then","else"]
-    bailOnUnsupportedKeywords text word =
-      when
-        (text == word)
-        (unexpected
-           (if elem word supportedKeywords
-               then "the keyword " ++ curlyQuotes (T.unpack word) ++ " isn't in the right place or is incomplete. Try adding a space after it?"
-               else ("“" ++ T.unpack word ++ "”: that keyword isn't allowed, " ++ ext)))
-      where
-        ext = "but you could use this instead: " ++ T.unpack word ++ "_"
 
 parseNumbers :: [a] -> Parser (Token, Location)
 parseNumbers prespaces = parser <?> "number (e.g. 42, 3.141, etc.)"
