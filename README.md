@@ -1,4 +1,4 @@
-# jl [![Build Status](https://travis-ci.org/chrisdone/jl.svg)](https://travis-ci.org/chrisdone/jl) 
+# jl [![Build Status](https://travis-ci.org/chrisdone/jl.svg)](https://travis-ci.org/chrisdone/jl)
 jl ("JSON lambda") is a tiny functional language for querying and
 manipulating JSON.
 
@@ -79,6 +79,36 @@ programming:
 
 ``` haskell
 jl 'id'
+```
+
+A sequence of JSON strings will be read in and processed individually:
+
+E.g.
+
+``` haskell
+$ cat x.json | jl id
+{"a":1}
+{"a":2}
+{"a":3}
+{"a":4}
+```
+
+If you want to read the input in as an array, use `--array`:
+
+``` haskell
+$ cat x.json | jl --array 'map _.a'
+[1,2,3,4]
+```
+
+After processing, sometimes you want to print each element of the
+array out line by line, for that use `--lines`:
+
+``` haskell
+$ cat x.json | jl --array --lines 'map _.a'
+1
+2
+3
+4
 ```
 
 Taking the first element of something, using syntax that looks like

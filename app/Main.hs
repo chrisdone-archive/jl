@@ -32,17 +32,22 @@ main :: IO ()
 main = do
   do hSetBuffering stdout LineBuffering
      hSetBuffering stdin LineBuffering
-     ((inp, file, aslines, browse, markdown, pretty), ()) <-
+     ((inp, file, inarray, aslines, browse, markdown, pretty), ()) <-
        simpleOptions
          "0.0.0"
          "jl - JSON Lambda calculus"
          "Command-line language for querying and outputting JSON."
-         ((,,,,,) <$>
+         ((,,,,,,) <$>
           strArgument
             (metavar "CODE" <>
              help "JL code; supports completion of function names" <>
              completeWith (map (\(Variable v) -> T.unpack v) (M.keys context))) <*>
           optional (strArgument (metavar "FILE")) <*>
+          flag
+            False
+            True
+            (short 'a' <> long "array" <>
+             help "Read each line of input as a single array") <*>
           flag
             False
             True
@@ -101,14 +106,21 @@ main = do
                     case Aeson.decode bytes of
                       Nothing -> hPutStr stderr "invalid input JSON"
                       Just j -> handleJson pretty expr0 aslines j
-                  Nothing -> process pretty expr0 aslines
+                  Nothing -> process pretty expr0 inarray aslines
   where
-    process pretty expr0 aslines =
+    process pretty expr0 inarray aslines =
       CB.sourceHandle stdin $= CB.lines $= conduitParserEither Aeson.value $=
-      CL.mapM_
-        (either
-           (hPutStrLn stderr . errorMessage)
-           (handleJson pretty expr0 aslines . snd)) $$
+      (if inarray
+         then do
+           es <-
+             CL.mapM (either (error . errorMessage) (return . snd)) $=
+             CL.consume
+           liftIO
+             (handleJson pretty expr0 aslines (Aeson.Array (V.fromList es)))
+         else CL.mapM_
+                (either
+                   (hPutStrLn stderr . errorMessage)
+                   (handleJson pretty expr0 aslines . snd))) $$
       CL.sinkNull
 
 -- | Handle a JSON input, printing out one to many JSON values.
