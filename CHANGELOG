@@ -1,3 +1,6 @@
+0.0.4:
+	* Add --array
+
 0.0.3:
 	* Remove keyword checks (e.g. "data"), jl doesn't have any
 	unsupported keywords
