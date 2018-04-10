@@ -413,7 +413,7 @@ appendf =
                     (ConstantCore (StringConstant xs'), ConstantCore (StringConstant ys')) ->
                       (ConstantCore (StringConstant (xs' <> ys')))
                     _ -> error "can only append two sequences of the same type"))))
-  , definitionType = FunctionType JSONType JSONType
+  , definitionType = FunctionType JSONType (FunctionType JSONType JSONType)
   }
 
 nubf :: Definition
