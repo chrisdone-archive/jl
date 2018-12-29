@@ -165,6 +165,16 @@ Filtering is easy, simply write a function that returns true:
 jl 'map (\o -> { sha: o.sha, ps: map _.sha o.parents }) | filter (\o -> length o.ps > 1)'
 ```
 
+If you want to make an object with arbitrary keys that come at runtime, use `set`:
+
+``` haskell
+$ echo '"hello"' | jl '\x -> set x 123 {}'
+{"hello":123}
+```
+
+This sets the key `x` in the empty object `{}` to `"hello"` with the value `123`.
+You can use `set` repeatedly to construct more keys.
+
 # Available functions
 
 ## Record access
