@@ -175,6 +175,13 @@ $ echo '"hello"' | jl '\x -> set x 123 {}'
 This sets the key `x` in the empty object `{}` to `"hello"` with the value `123`.
 You can use `set` repeatedly to construct more keys.
 
+If you want to construct an object from a list of key/values, you can use `fold`:
+
+```haskell
+$ echo '[{"k":"foo","v":123},{"k":"bar","v":456}]' | jl 'fold (\acc o -> set o.k o.v acc) {}'
+{"foo":123,"bar":456}
+```
+
 # Available functions
 
 ## Record access
