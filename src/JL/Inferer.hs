@@ -117,10 +117,13 @@ check ctx expr =
 generateTypeVariable
   :: MonadState ([TypeVariable]) m
   => m TypeVariable
-generateTypeVariable = do
-  v:vs <- get
-  put vs
-  pure v
+generateTypeVariable =
+  get >>= \case
+    v:vs -> do
+      put vs
+      pure v
+    _ ->
+      error "Ran out of type variables"
 
 -- | Unify the list of constraints.
 unify
