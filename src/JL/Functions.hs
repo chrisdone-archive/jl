@@ -401,7 +401,7 @@ rev =
 appendf :: Definition
 appendf =
   Definition
-  { definitionDoc = "Append a sequence"
+  { definitionDoc = "Append the members of the second sequence to the first sequence"
   , definitionName = Variable "append"
   , definitionCore =
       (EvalCore

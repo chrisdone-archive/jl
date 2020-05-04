@@ -322,16 +322,22 @@ sort :: JSON → JSON
 Return the sequence sorted
 
 ```haskell
-append :: JSON → JSON
+append :: JSON → JSON → JSON
 ```
 
-Append a sequence
+Append the members of the second sequence to the first sequence
 
 ```haskell
 sum :: JSON → JSON
 ```
 
 Get the sum of a sequence
+
+```haskell
+product :: JSON → JSON
+```
+
+Get the product of a sequence
 
 ```haskell
 minimum :: JSON → JSON
