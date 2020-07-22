@@ -68,7 +68,7 @@ Or objects:
 
 Function composition:
 
-    a | b | c is sugar for `\x -> c (b (a x)`
+    a | b | c is sugar for `\x -> c (b (a x))`
 
 ## Mini tutorial
 
