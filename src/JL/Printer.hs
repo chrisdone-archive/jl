@@ -7,7 +7,6 @@
 
 module JL.Printer where
 
-import           Control.Monad.Writer
 import qualified Data.HashMap.Strict as HM
 import           Data.Text (Text)
 import qualified Data.Text as T

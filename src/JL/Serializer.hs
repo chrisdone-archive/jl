@@ -5,7 +5,6 @@
 
 module JL.Serializer where
 
-import           Control.Monad.Writer
 import           Data.Aeson
 import           Data.Aeson.KeyMap
 import           Data.Scientific

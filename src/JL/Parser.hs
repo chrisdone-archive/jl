@@ -10,7 +10,6 @@ module JL.Parser where
 import           Control.Monad.Catch
 import           Data.Functor
 import qualified Data.HashMap.Strict as HM
-import           Data.Monoid
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Vector as V

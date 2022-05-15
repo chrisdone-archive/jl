@@ -8,7 +8,6 @@
 
 module JL.Interpreter where
 
-import           Control.Monad.Writer
 import qualified Data.Text as T
 import           JL.Printer
 import           JL.Types
