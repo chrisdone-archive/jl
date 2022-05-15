@@ -7,6 +7,7 @@ module JL.Serializer where
 
 import           Control.Monad.Writer
 import           Data.Aeson
+import           Data.Aeson.KeyMap
 import           Data.Scientific
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -36,7 +37,7 @@ coreToValue :: Core -> Value
 coreToValue =
   \case
     ConstantCore v -> constantToValue v
-    RecordCore hm -> Object (fmap coreToValue hm)
+    RecordCore hm -> Object (fromHashMapText (fmap coreToValue hm))
     ArrayCore a -> Array (fmap coreToValue a)
     e -> error ("code generated invalid JSON: " <> T.unpack (prettyCore e))
 
@@ -51,7 +52,7 @@ constantToValue =
 valueToCore :: Value -> Core
 valueToCore =
   \case
-    Object os -> RecordCore (fmap valueToCore os)
+    Object os -> RecordCore (fmap valueToCore (toHashMapText os))
     Array xs -> ArrayCore (fmap valueToCore xs)
     Number n -> ConstantCore (NumberConstant n)
     Bool n -> ConstantCore (BoolConstant n)
@@ -61,7 +62,7 @@ valueToCore =
 valueToExpression :: Value -> Expression
 valueToExpression =
   \case
-    Object os -> RecordExpression (fmap valueToExpression os)
+    Object os -> RecordExpression (fmap valueToExpression (toHashMapText os))
     Array xs -> ArrayExpression (fmap valueToExpression xs)
     Number n -> ConstantExpression (NumberConstant n)
     Bool n -> ConstantExpression (BoolConstant n)
