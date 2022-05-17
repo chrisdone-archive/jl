@@ -6,7 +6,6 @@
 module JL.Functions (context, scope, functions) where
 
 import           Control.Arrow
-import           Control.Monad.Writer
 import           Data.Aeson (Value)
 import           Data.Function
 import qualified Data.HashMap.Strict as HM

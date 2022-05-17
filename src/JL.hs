@@ -5,7 +5,6 @@
 
 module JL where
 
-import           Control.Monad.Writer
 import           Data.Aeson
 import           Data.ByteString.Lazy (ByteString)
 import qualified Data.Map.Strict as M

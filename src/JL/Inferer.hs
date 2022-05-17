@@ -9,7 +9,6 @@ module JL.Inferer where
 
 
 import           Control.Monad.State.Strict
-import           Control.Monad.Writer
 import qualified Data.HashMap.Strict as HM
 import           Data.Map (Map)
 import qualified Data.Map as M

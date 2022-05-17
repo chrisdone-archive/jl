@@ -10,7 +10,7 @@ import qualified Data.Aeson.Encode.Pretty as Aeson
 import qualified Data.Aeson.Parser as Aeson
 import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Lazy.Char8 as L8
-import           Data.Conduit ( ($=), ($$))
+import           Data.Conduit ( (.|), runConduit)
 import           Data.Conduit.Attoparsec
 import qualified Data.Conduit.Binary as CB
 import qualified Data.Conduit.List as CL
@@ -108,19 +108,19 @@ main = do
                       Just j -> handleJson pretty expr0 aslines j
                   Nothing -> process pretty expr0 inarray aslines
   where
-    process pretty expr0 inarray aslines =
-      CB.sourceHandle stdin $= CB.lines $= conduitParserEither Aeson.value $=
+    process pretty expr0 inarray aslines = runConduit $
+      CB.sourceHandle stdin .| CB.lines .| conduitParserEither Aeson.value .|
       (if inarray
          then do
            es <-
-             CL.mapM (either (error . errorMessage) (return . snd)) $=
+             CL.mapM (either (error . errorMessage) (return . snd)) .|
              CL.consume
            liftIO
              (handleJson pretty expr0 aslines (Aeson.Array (V.fromList es)))
          else CL.mapM_
                 (either
                    (hPutStrLn stderr . errorMessage)
-                   (handleJson pretty expr0 aslines . snd))) $$
+                   (handleJson pretty expr0 aslines . snd))) .|
       CL.sinkNull
 
 -- | Handle a JSON input, printing out one to many JSON values.
