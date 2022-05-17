@@ -1,3 +1,8 @@
+0.1.0:
+        * Depends on newer aeson>2
+	* Removed Data.Monoid imports and Control.Monad.Writer imports
+	* PVP requires a major bump
+
 0.0.4:
 	* Add --array
 
